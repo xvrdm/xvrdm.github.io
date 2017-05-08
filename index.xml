@@ -28,7 +28,7 @@
 &lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;The offers on real estate websites aren’t always in an easy-to-use format, especially if you want to compare offers from multiple agencies.&lt;/p&gt;
-&lt;p&gt;In a &lt;a href=&#34;%22https://xvrdm.github.io/2017/03/31/scrape-a-list-of-rental-offers-using-rvest-and-purrr/%22&#34;&gt;previous post&lt;/a&gt;, we saw how to scrape a listing of apartments on a single page with R. However, listings usually do not include all the details about the items. They usually only list a condensed version of the information and a url to a “detail” page, which contains the rest of the fields. For example, we could not add any insight about “Floors” to our dataset as “Floor” is only detailled on each apartement details page. In this post, we will see how to:&lt;/p&gt;
+&lt;p&gt;In a &lt;a href=&#34;https://xvrdm.github.io/2017/03/31/scrape-a-list-of-rental-offers-using-rvest-and-purrr/&#34;&gt;previous post&lt;/a&gt;, we saw how to scrape a listing of apartments on a single page with R. However, listings usually do not include all the details about the items. They usually only list a condensed version of the information and a url to a “detail” page, which contains the rest of the fields. For example, we could not add any insight about “Floors” to our dataset as “Floor” is only detailled on each apartement details page. In this post, we will see how to:&lt;/p&gt;
 &lt;ol style=&#34;list-style-type: decimal&#34;&gt;
 &lt;li&gt;find the URL for each apartment&lt;/li&gt;
 &lt;li&gt;scrape details found on each details page&lt;/li&gt;
@@ -232,7 +232,7 @@ knitr::kable(head(extra_info))&lt;/code&gt;&lt;/pre&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;Thanks to the common &lt;code&gt;id&lt;/code&gt; field, we can join this dataframe with the one obtained in the &lt;a href=&#34;%22https://xvrdm.github.io/2017/03/31/scrape-a-list-of-rental-offers-using-rvest-and-purrr/%22&#34;&gt;previous post&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Thanks to the common &lt;code&gt;id&lt;/code&gt; field, we can join this dataframe with the one obtained in the &lt;a href=&#34;https://xvrdm.github.io/2017/03/31/scrape-a-list-of-rental-offers-using-rvest-and-purrr/&#34;&gt;previous post&lt;/a&gt;.&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 </description>
