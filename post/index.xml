@@ -6,8 +6,227 @@
     <description>Recent content in Posts on Invalid Input</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 16 Apr 2017 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 08 May 2017 00:00:00 +0000</lastBuildDate>
     <atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Create Swiss cantons cartogram with ggplot2</title>
+      <link>/2017/05/08/create-swiss-cantons-cartogram-with-ggplot2/</link>
+      <pubDate>Mon, 08 May 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/05/08/create-swiss-cantons-cartogram-with-ggplot2/</guid>
+      <description>&lt;!-- BLOGDOWN-HEAD --&gt;
+
+&lt;script src=&#34;#####content/post/1705081-cantonbins_files/htmlwidgets/htmlwidgets.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;#####content/post/1705081-cantonbins_files/jquery/jquery.min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;#####content/post/1705081-cantonbins_files/datatables-binding/datatables.js&#34;&gt;&lt;/script&gt;
+&lt;link href=&#34;#####content/post/1705081-cantonbins_files/dt-core/css/jquery.dataTables.min.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;link href=&#34;#####content/post/1705081-cantonbins_files/dt-core/css/jquery.dataTables.extra.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;script src=&#34;#####content/post/1705081-cantonbins_files/dt-core/js/jquery.dataTables.min.js&#34;&gt;&lt;/script&gt;
+
+
+&lt;!-- /BLOGDOWN-HEAD --&gt;
+
+&lt;!-- BLOGDOWN-BODY-BEFORE --&gt;
+
+&lt;!-- /BLOGDOWN-BODY-BEFORE --&gt;
+
+&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;While reading &lt;a href=&#34;www.rweekly.org&#34;&gt;rweekly&lt;/a&gt; past issues, I stumbbled upon a post from &lt;a href=&#34;http://maxhumber.com/2017/02/15/tile_canada.html&#34;&gt;Max Humber&lt;/a&gt;, explaining how he tried to design a tile grid map / state cartogram for Canada. I had never seen such design and thought that it would be a great fit for Swiss cantons. While browsing the excellent repositories of &lt;a href=&#34;https://github.com/hrbrmstr&#34;&gt;Bob Rudis&lt;/a&gt;, I realised that he had written &lt;a href=&#34;https://github.com/hrbrmstr/statebins&#34;&gt;statebin&lt;/a&gt;, a ggplot extension to easily create US state cartogram. This post is my attempt to convert his code to handle Swiss cantons.&lt;/p&gt;
+&lt;p&gt;In hrbrmstr library, US states are on a 8x12 grid.&lt;/p&gt;
+&lt;div class=&#34;figure&#34;&gt;
+&lt;img src=&#34;../img/1705081-cantonbins-scrsh-hrbrmstr-statesbin.png&#34; alt=&#34;US States mapped with statebins. Source: https://github.com/hrbrmstr/statebins&#34; /&gt;
+&lt;p class=&#34;caption&#34;&gt;US States mapped with statebins. Source: &lt;a href=&#34;https://github.com/hrbrmstr/statebins&#34; class=&#34;uri&#34;&gt;https://github.com/hrbrmstr/statebins&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;These coordinates are saved with the full and abbreviated names in a dataframe. The &lt;code&gt;L&lt;/code&gt; suffix after the numbers is a &lt;a href=&#34;http://stackoverflow.com/questions/24350733/why-would-r-use-the-l-suffix-to-denote-an-integer&#34;&gt;way to specify integer&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Original code from hrbrmstr
+# source: https://github.com/hrbrmstr/statebins/blob/master/R/statebins.R
+state_coords &amp;lt;- structure(
+  list(abbrev = c(&amp;quot;AL&amp;quot;, &amp;quot;AK&amp;quot;, &amp;quot;AZ&amp;quot;, &amp;quot;AR&amp;quot;, &amp;quot;CA&amp;quot;, &amp;quot;CO&amp;quot;,
+                  &amp;quot;CT&amp;quot;, &amp;quot;DC&amp;quot;, &amp;quot;DE&amp;quot;, &amp;quot;FL&amp;quot;, &amp;quot;GA&amp;quot;, &amp;quot;HI&amp;quot;,
+                  &amp;quot;ID&amp;quot;, &amp;quot;IL&amp;quot;, &amp;quot;IN&amp;quot;, &amp;quot;IA&amp;quot;, &amp;quot;KS&amp;quot;, &amp;quot;KY&amp;quot;, 
+                  &amp;quot;LA&amp;quot;, &amp;quot;ME&amp;quot;, &amp;quot;MD&amp;quot;, &amp;quot;MA&amp;quot;, &amp;quot;MI&amp;quot;, &amp;quot;MN&amp;quot;,
+                  &amp;quot;MS&amp;quot;, &amp;quot;MO&amp;quot;, &amp;quot;MT&amp;quot;, &amp;quot;NE&amp;quot;, &amp;quot;NV&amp;quot;, &amp;quot;NH&amp;quot;, 
+                  &amp;quot;NJ&amp;quot;, &amp;quot;NM&amp;quot;, &amp;quot;NY&amp;quot;, &amp;quot;NC&amp;quot;, &amp;quot;ND&amp;quot;, &amp;quot;OH&amp;quot;, 
+                  &amp;quot;OK&amp;quot;, &amp;quot;OR&amp;quot;, &amp;quot;PA&amp;quot;, &amp;quot;RI&amp;quot;, &amp;quot;SC&amp;quot;, &amp;quot;SD&amp;quot;, 
+                  &amp;quot;TN&amp;quot;, &amp;quot;TX&amp;quot;, &amp;quot;UT&amp;quot;, &amp;quot;VT&amp;quot;, &amp;quot;VA&amp;quot;, &amp;quot;WA&amp;quot;, 
+                  &amp;quot;WV&amp;quot;, &amp;quot;WI&amp;quot;, &amp;quot;WY&amp;quot;, &amp;quot;PR&amp;quot;),
+       it = c(&amp;quot;Alabama&amp;quot;, &amp;quot;Alaska&amp;quot;, &amp;quot;Arizona&amp;quot;, &amp;quot;Arkansas&amp;quot;,
+              &amp;quot;California&amp;quot;, &amp;quot;Colorado&amp;quot;, &amp;quot;Connecticut&amp;quot;, 
+              &amp;quot;District of Columbia&amp;quot;, &amp;quot;Delaware&amp;quot;, &amp;quot;Florida&amp;quot;, 
+              &amp;quot;Georgia&amp;quot;, &amp;quot;Hawaii&amp;quot;, &amp;quot;Idaho&amp;quot;, &amp;quot;Illinois&amp;quot;, 
+              &amp;quot;Indiana&amp;quot;, &amp;quot;Iowa&amp;quot;, &amp;quot;Kansas&amp;quot;, &amp;quot;Kentucky&amp;quot;, 
+              &amp;quot;Louisiana&amp;quot;, &amp;quot;Maine&amp;quot;, &amp;quot;Maryland&amp;quot;, 
+              &amp;quot;Massachusetts&amp;quot;, &amp;quot;Michigan&amp;quot;, &amp;quot;Minnesota&amp;quot;, 
+              &amp;quot;Mississippi&amp;quot;, &amp;quot;Missouri&amp;quot;, &amp;quot;Montana&amp;quot;, 
+              &amp;quot;Nebraska&amp;quot;, &amp;quot;Nevada&amp;quot;, &amp;quot;New Hampshire&amp;quot;,
+              &amp;quot;New Jersey&amp;quot;, &amp;quot;New Mexico&amp;quot;, &amp;quot;New York&amp;quot;,
+              &amp;quot;North Carolina&amp;quot;, &amp;quot;North Dakota&amp;quot;, &amp;quot;Ohio&amp;quot;,
+              &amp;quot;Oklahoma&amp;quot;, &amp;quot;Oregon&amp;quot;, &amp;quot;Pennsylvania&amp;quot;,
+              &amp;quot;Rhode Island&amp;quot;, &amp;quot;South Carolina&amp;quot;,
+              &amp;quot;South Dakota&amp;quot;, &amp;quot;Tennessee&amp;quot;, &amp;quot;Texas&amp;quot;, &amp;quot;Utah&amp;quot;,
+              &amp;quot;Vermont&amp;quot;, &amp;quot;Virginia&amp;quot;, &amp;quot;Washington&amp;quot;,
+              &amp;quot;West Virginia&amp;quot;, &amp;quot;Wisconsin&amp;quot;, &amp;quot;Wyoming&amp;quot;,
+              &amp;quot;Puerto Rico&amp;quot;),
+       col = c(8L, 1L, 3L, 6L, 2L, 4L, 11L, 10L, 11L, 10L,
+               9L, 1L, 3L, 7L, 7L, 6L, 5L, 7L, 6L, 12L,
+               10L, 11L, 8L, 6L, 7L, 6L, 4L, 5L, 3L, 12L,
+               10L, 4L, 10L, 8L, 5L, 8L, 5L, 2L, 9L, 12L,
+               9L, 5L, 7L, 5L, 3L, 11L, 9L, 2L, 8L, 7L, 4L, 12L),
+       row = c(7L, 7L, 6L, 6L, 5L, 5L, 4L, 6L, 5L, 8L, 7L,
+               8L, 3L, 3L, 4L, 4L, 6L, 5L, 7L, 1L, 5L, 3L,
+               3L, 3L, 7L, 5L, 3L, 5L, 4L, 2L, 4L, 6L, 3L, 
+               6L, 3L, 4L, 7L, 4L, 4L, 4L, 6L, 4L, 6L, 8L,
+               5L, 2L, 5L, 3L, 5L, 2L, 4L, 8L)),
+  .Names = c(&amp;quot;abbrev&amp;quot;, &amp;quot;state&amp;quot;, &amp;quot;col&amp;quot;, &amp;quot;row&amp;quot;),
+  class = &amp;quot;data.frame&amp;quot;, 
+  row.names = c(NA, -52L)
+)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To sketch the mockup of your tile grid, excel can come to rescue.&lt;/p&gt;
+&lt;div class=&#34;figure&#34;&gt;
+&lt;img src=&#34;../img/1705081-cantonbins-scrsh-excel.png&#34; alt=&#34;Mock up of Swiss tile grid&#34; /&gt;
+&lt;p class=&#34;caption&#34;&gt;Mock up of Swiss tile grid&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;This shows that cantons could be represented on a 5x9 grid.&lt;/p&gt;
+&lt;div class=&#34;figure&#34;&gt;
+&lt;img src=&#34;../img/1705081-cantonbins-scrsh-excel-2.png&#34; alt=&#34;Columns/Rows reference for 5x9 grid&#34; /&gt;
+&lt;p class=&#34;caption&#34;&gt;Columns/Rows reference for 5x9 grid&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;By using the row/column reference of each canton, we can translate this mock up into an object mimicing hrbrmstr data structure (adding the names in each national languages).&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;canton_coords &amp;lt;- structure(
+  list(abbrev = c(&amp;quot;AG&amp;quot;, &amp;quot;AI&amp;quot;, &amp;quot;AR&amp;quot;, &amp;quot;BE&amp;quot;, &amp;quot;BL&amp;quot;, &amp;quot;BS&amp;quot;, &amp;quot;FR&amp;quot;,
+                  &amp;quot;GE&amp;quot;, &amp;quot;GL&amp;quot;, &amp;quot;GR&amp;quot;, &amp;quot;JU&amp;quot;, &amp;quot;LU&amp;quot;, &amp;quot;NE&amp;quot;, &amp;quot;NW&amp;quot;,
+                  &amp;quot;OW&amp;quot;, &amp;quot;SG&amp;quot;, &amp;quot;SH&amp;quot;, &amp;quot;SO&amp;quot;, &amp;quot;SZ&amp;quot;, &amp;quot;TG&amp;quot;, &amp;quot;TI&amp;quot;,
+                  &amp;quot;UR&amp;quot;, &amp;quot;VD&amp;quot;, &amp;quot;VS&amp;quot;, &amp;quot;ZG&amp;quot;, &amp;quot;ZH&amp;quot;),
+       fr_name = c(&amp;quot;Argovie&amp;quot;, &amp;quot;Appenzell Rhodes-Intérieures&amp;quot;,
+                   &amp;quot;Appenzell Rhodes-Extérieures&amp;quot;, &amp;quot;Berne&amp;quot;,
+                   &amp;quot;Bâle-Campagne&amp;quot;, &amp;quot;Bâle-Ville&amp;quot;, &amp;quot;Fribourg&amp;quot;,
+                   &amp;quot;Genève&amp;quot;, &amp;quot;Glaris&amp;quot;, &amp;quot;Grisons&amp;quot;, &amp;quot;Jura&amp;quot;,
+                   &amp;quot;Lucerne&amp;quot;, &amp;quot;Neuchâtel&amp;quot;, &amp;quot;Nidwald&amp;quot;, &amp;quot;Obwald&amp;quot;,
+                   &amp;quot;Saint-Gall&amp;quot;, &amp;quot;Schaffhouse&amp;quot;, &amp;quot;Soleure&amp;quot;, &amp;quot;Schwytz&amp;quot;,
+                   &amp;quot;Thurgovie&amp;quot;, &amp;quot;Tessin&amp;quot;, &amp;quot;Uri&amp;quot;, &amp;quot;Vaud&amp;quot;,
+                   &amp;quot;Valais&amp;quot;, &amp;quot;Zoug&amp;quot;, &amp;quot;Zurich&amp;quot;),
+       de_name = c(&amp;quot;Aargau&amp;quot;, &amp;quot;Appenzell Innerrhoden&amp;quot;,
+                   &amp;quot;Appenzell Ausserrhoden&amp;quot;, &amp;quot;Bern&amp;quot;, 
+                   &amp;quot;Basel-Landschaft&amp;quot;, &amp;quot;Basel-Stadt&amp;quot;,
+                   &amp;quot;Freiburg&amp;quot;, &amp;quot;Genf&amp;quot;, &amp;quot;Glarus&amp;quot;,
+                   &amp;quot;Graubünden&amp;quot;, &amp;quot;Jura&amp;quot;, &amp;quot;Luzern&amp;quot;,
+                   &amp;quot;Neuenburg&amp;quot;, &amp;quot;Nidwalden&amp;quot;, &amp;quot;Obwalden&amp;quot;,
+                   &amp;quot;St. Gallen&amp;quot;, &amp;quot;Schaffhausen&amp;quot;, &amp;quot;Solothurn&amp;quot;,
+                   &amp;quot;Schwyz&amp;quot;, &amp;quot;Thurgau&amp;quot;, &amp;quot;Tessin&amp;quot;, &amp;quot;Uri&amp;quot;,
+                   &amp;quot;Waadt&amp;quot;, &amp;quot;Wallis&amp;quot;, &amp;quot;Zug&amp;quot;, &amp;quot;Zürich&amp;quot;),
+       it_name = c(&amp;quot;Argovia&amp;quot;, &amp;quot;Appenzello Interno&amp;quot;,
+                   &amp;quot;Appenzello Esterno&amp;quot;, &amp;quot;Berna&amp;quot;,
+                   &amp;quot;Basilea Campagna&amp;quot;, &amp;quot;Basilea Città&amp;quot;,
+                   &amp;quot;Friburgo&amp;quot;, &amp;quot;Ginevra&amp;quot;, &amp;quot;Glarona&amp;quot;,
+                   &amp;quot;Grigioni&amp;quot;, &amp;quot;Giura&amp;quot;, &amp;quot;Lucerna&amp;quot;, &amp;quot;Neuchâtel&amp;quot;,
+                   &amp;quot;Nidvaldo&amp;quot;, &amp;quot;Obvaldo&amp;quot;, &amp;quot;San Gallo&amp;quot;,
+                   &amp;quot;Sciaffusa&amp;quot;, &amp;quot;Soletta&amp;quot;, &amp;quot;Svitto&amp;quot;, &amp;quot;Turgovia&amp;quot;,
+                   &amp;quot;Ticino&amp;quot;, &amp;quot;Uri&amp;quot;, &amp;quot;Vaud&amp;quot;, &amp;quot;Vallese&amp;quot;,
+                   &amp;quot;Zugo&amp;quot;, &amp;quot;Zurigo&amp;quot;), 
+       ru_name = c(&amp;quot;Argovia&amp;quot;, &amp;quot;Appenzell Dadens&amp;quot;,
+                   &amp;quot;Appenzell Dadora&amp;quot;, &amp;quot;Berna&amp;quot;,
+                   &amp;quot;Basilea-Champagna&amp;quot;, &amp;quot;Basilea-Citad&amp;quot;,
+                   &amp;quot;Friburg&amp;quot;, &amp;quot;Genevra&amp;quot;, &amp;quot;Glaruna&amp;quot;,
+                   &amp;quot;Grischun&amp;quot;, &amp;quot;Giura&amp;quot;, &amp;quot;Lucerna&amp;quot;, &amp;quot;Neuchâtel&amp;quot;,
+                   &amp;quot;Sutsilvania&amp;quot;, &amp;quot;Sursilvania&amp;quot;, &amp;quot;Son Gagl&amp;quot;,
+                   &amp;quot;Schaffusa&amp;quot;, &amp;quot;Soloturn&amp;quot;, &amp;quot;Sviz&amp;quot;, &amp;quot;Turgovia&amp;quot;,
+                   &amp;quot;Tessin&amp;quot;, &amp;quot;Uri&amp;quot;, &amp;quot;Vad&amp;quot;, &amp;quot;Vallais&amp;quot;,
+                   &amp;quot;Zug&amp;quot;, &amp;quot;Turitg&amp;quot;),
+       col = c(5L,8L,8L,4L,4L,4L,3L,1L,8L,9L,3L,5L,3L,
+               6L,5L,7L,6L,4L,7L,7L,7L,7L,2L,4L,6L,6L),
+       row = c(2L,3L,2L,4L,2L,1L,4L,5L,4L,4L,2L,3L,3L,
+               4L,4L,2L,1L,3L,3L,1L,5L,4L,4L,5L,3L,2L)),
+  .Names = c(&amp;quot;abbrev&amp;quot;, &amp;quot;fr_name&amp;quot;, &amp;quot;de_name&amp;quot;,
+             &amp;quot;it_name&amp;quot;, &amp;quot;ru_name&amp;quot;, &amp;quot;col&amp;quot;, &amp;quot;row&amp;quot;),
+  class = &amp;quot;data.frame&amp;quot;,
+  row.names = c(NA, -26L)
+)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Using the same data structure as the one designed for &lt;a href=&#34;https://github.com/hrbrmstr/statebins&#34;&gt;statebin&lt;/a&gt;, it is easy to reuse the same ggplot code and only apply slight modifications (like a theme from the same &lt;a href=&#34;https://github.com/hrbrmstr/hrbrthemes&#34;&gt;hrbrmstr&lt;/a&gt;).&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;suppressMessages(library(ggplot2))
+suppressMessages(library(RColorBrewer))
+suppressMessages(library(hrbrthemes))
+
+cantonbins &amp;lt;- function(canton_data, canton_col=&amp;quot;abbrev&amp;quot;, value_col=&amp;quot;value&amp;quot;,
+                     text_color=&amp;quot;black&amp;quot;, font_size=3,
+                     canton_border_col=&amp;quot;white&amp;quot;, labels=1:5,
+                     brewer_pal=&amp;quot;PuBu&amp;quot;, plot_title=&amp;quot;&amp;quot;,
+                     plot_subtitle=&amp;quot;&amp;quot;, plot_caption=&amp;quot;&amp;quot;) {
+
+  # Reformat canton_data into a data frame without factors
+  # and merge with canton_coords on abbrev key
+  canton_data &amp;lt;- data.frame(canton_data, stringsAsFactors=FALSE)
+  merge.x &amp;lt;- &amp;quot;abbrev&amp;quot;
+  ct.dat &amp;lt;- merge(canton_coords, canton_data,
+                  by.x=merge.x, by.y=canton_col, all.y=TRUE)
+
+  # Create tile plot
+  gg &amp;lt;- ggplot(ct.dat, aes_string(x=&amp;quot;col&amp;quot;, y=&amp;quot;row&amp;quot;, label=&amp;quot;abbrev&amp;quot;))
+  gg &amp;lt;- gg + geom_tile(aes_string(fill=value_col))
+  gg &amp;lt;- gg + geom_tile(color=canton_border_col, aes_string(fill=value_col),
+                       size=2, show.legend =FALSE)
+  gg &amp;lt;- gg + geom_text(color=text_color, size=font_size)
+  
+  # Add title
+  gg &amp;lt;- gg + labs(title=plot_title, subtitle=plot_subtitle,
+                  caption=plot_caption)
+  
+  # Set scales and coordinates system
+  gg &amp;lt;- gg + scale_y_reverse()
+  gg &amp;lt;- gg + scale_fill_gradientn(colours = brewer.pal(6, brewer_pal))
+  gg &amp;lt;- gg + coord_equal()
+  
+  # Set minimal theme and remove axis titles, border, grid, 
+  # background, axis ticks and axis text
+  gg &amp;lt;- gg + theme_ipsum_rc()
+  gg &amp;lt;- gg + labs(x=NULL, y=NULL)
+  gg &amp;lt;- gg + theme(panel.border=element_blank())
+  gg &amp;lt;- gg + theme(panel.grid=element_blank())
+  gg &amp;lt;- gg + theme(panel.background=element_blank())
+  gg &amp;lt;- gg + theme(axis.ticks=element_blank())
+  gg &amp;lt;- gg + theme(axis.text=element_blank())
+
+  return(gg)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To test the function, let’s scrape a table from wikipedia containing the population per cantons. By inspecting the wikipedia code, you can see that the table has the &lt;code&gt;class&lt;/code&gt;: &lt;code&gt;wikitable&lt;/code&gt;. It can be extracted (with the help of &lt;code&gt;rvest&lt;/code&gt;) and converted into a usable dataframe (using &lt;code&gt;dplyr&lt;/code&gt;). The only modification are:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;renaming the &lt;code&gt;Population[Note 2]&lt;/code&gt; column to something simpler&lt;/li&gt;
+&lt;li&gt;converting the numbers stored as strings to numeric after removing their thousands “,”&lt;/li&gt;
+&lt;li&gt;remove the total row for Switzerland (&lt;code&gt;Code != &amp;quot;CH&amp;quot;&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;selecting the columns of interest&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;suppressMessages(library(rvest))
+suppressMessages(library(dplyr))
+suppressMessages(library(stringr))
+suppressMessages(library(DT))
+
+url &amp;lt;- &amp;quot;https://en.wikipedia.org/wiki/Cantons_of_Switzerland&amp;quot;
+density &amp;lt;- url %&amp;gt;%
+  read_html() %&amp;gt;%
+  html_node(xpath=&amp;#39;//table[contains(@class,&amp;quot;wikitable&amp;quot;)]&amp;#39;) %&amp;gt;%
+  html_table() %&amp;gt;%
+  rename(Population=`Population[Note 2]`) %&amp;gt;%
+  mutate(Population=as.numeric(stringr::str_replace_all(Population, &amp;quot;,&amp;quot;, &amp;quot;&amp;quot;))) %&amp;gt;%
+  filter(Code != &amp;quot;CH&amp;quot;) %&amp;gt;%
+  select(Code, Canton, Population)
+
+DT::datatable(
+  density,
+  options = list(pageLength = 5, dom = &amp;#39;tpi&amp;#39;),
+  rownames = FALSE,
+  caption = &amp;quot;Table 1 : Subset of wikipedia data for cantons.&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;div id=&#34;htmlwidget-743bfa82417ab468693e&#34; style=&#34;width:100%;height:auto;&#34; class=&#34;datatables html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-743bfa82417ab468693e&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 1 : Subset of wikipedia data for cantons.\u003c/caption&gt;&#34;,&#34;data&#34;:[[&#34;ZH&#34;,&#34;BE&#34;,&#34;LU&#34;,&#34;UR&#34;,&#34;SZ&#34;,&#34;OW&#34;,&#34;NW&#34;,&#34;GL&#34;,&#34;ZG&#34;,&#34;FR&#34;,&#34;SO&#34;,&#34;BS&#34;,&#34;BL&#34;,&#34;SH&#34;,&#34;AR&#34;,&#34;AI&#34;,&#34;SG&#34;,&#34;GR&#34;,&#34;AG&#34;,&#34;TG&#34;,&#34;TI&#34;,&#34;VD&#34;,&#34;VS&#34;,&#34;NE&#34;,&#34;GE&#34;,&#34;JU&#34;],[&#34;Zürich&#34;,&#34;Bern&#34;,&#34;Luzern&#34;,&#34;Uri&#34;,&#34;Schwyz&#34;,&#34;Obwalden&#34;,&#34;Nidwalden&#34;,&#34;Glarus&#34;,&#34;Zug&#34;,&#34;Fribourg&#34;,&#34;Solothurn&#34;,&#34;Basel-Stadt&#34;,&#34;Basel-Landschaft&#34;,&#34;Schaffhausen&#34;,&#34;Appenzell Ausserrhoden&#34;,&#34;Appenzell Innerrhoden&#34;,&#34;St. Gallen&#34;,&#34;Graubünden&#34;,&#34;Aargau&#34;,&#34;Thurgau&#34;,&#34;Ticino&#34;,&#34;Vaud&#34;,&#34;Valais&#34;,&#34;Neuchâtel&#34;,&#34;Geneva&#34;,&#34;Jura&#34;],[1463459,1017483,398762,35973,154093,37076,42420,40028,122134,307461,266418,198290,285094,79836,54543,15974,499065,196610,653675,267429,351946,773407,335696,178107,484736,72782]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;Code\u003c/th&gt;\n      &lt;th&gt;Canton\u003c/th&gt;\n      &lt;th&gt;Population\u003c/th&gt;\n    \u003c/tr&gt;\n  \u003c/thead&gt;\n\u003c/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:2}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;p&gt;We can now try the &lt;code&gt;cantonbins&lt;/code&gt; function.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;cantonbins(density, canton_col=&amp;quot;Code&amp;quot;, value_col=&amp;quot;Population&amp;quot;,
+           plot_title=&amp;quot;Population size in Swiss Cantons&amp;quot;,
+           plot_subtitle = paste0(&amp;quot;Source: &amp;quot;, url))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;#####content/post/1705081-cantonbins_files/figure-html/unnamed-chunk-5-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;There is a lot more we can do with Cartograms and, in a future post, I hope to release a full fork of &lt;a href=&#34;https://github.com/hrbrmstr/statebins&#34;&gt;statebin&lt;/a&gt; so that you can easily install it from Github.&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Scrape linked webpages using rvest and purrr</title>
@@ -386,8 +605,8 @@ DT::datatable(
   options = list(pageLength = 5, dom = &amp;#39;tpi&amp;#39;),
   rownames = FALSE,
   caption = &amp;quot;Table 1 : Offers scraped using the field centric way&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
-&lt;div id=&#34;htmlwidget-69eee60952bde0a3b24c&#34; style=&#34;width:100%;height:auto;&#34; class=&#34;datatables html-widget&#34;&gt;&lt;/div&gt;
-&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-69eee60952bde0a3b24c&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 1 : Offers scraped using the field centric way\u003c/caption&gt;&#34;,&#34;data&#34;:[[&#34;0371.41.0030&#34;,&#34;0042.43.0010&#34;,&#34;0042.44.0050&#34;,&#34;0645.40.0300&#34;,&#34;0645.44.0430&#34;,&#34;0110.41.0010&#34;,&#34;2120.43.0040&#34;,&#34;0399.45.0020&#34;,&#34;2013.45.0030&#34;,&#34;0573.44.0450&#34;,&#34;2322.41.0030&#34;,&#34;0649.40.0010&#34;,&#34;0009.41.0020&#34;,&#34;0626.41.0010&#34;,&#34;2190.41.0010&#34;,&#34;0575.47.0030&#34;,&#34;0627.42.0020&#34;,&#34;2023.42.0030&#34;,&#34;0632.43.0070&#34;,&#34;2306.40.0030&#34;,&#34;0553.43.0010&#34;,&#34;0572.43.0330&#34;,&#34;0108.43.0020&#34;,&#34;2579.41.0020&#34;,&#34;0256.43.0010&#34;,&#34;0475.42.0010&#34;,&#34;0116.46.0020&#34;,&#34;0192.47.0030&#34;,&#34;0253.41.0040&#34;,&#34;7450.41.0010&#34;,&#34;2469.40.0020&#34;,&#34;7450.42.0020&#34;,&#34;2140.42.0020&#34;,&#34;0022.40.0010&#34;,&#34;0022.43.0010&#34;,&#34;0082.44.0030&#34;,&#34;2581.43.0010&#34;,&#34;0033.48.0020&#34;,&#34;0695.42.0010&#34;,&#34;0615.45.0010&#34;,&#34;7450.43.0010&#34;,&#34;0294.43.0020&#34;,&#34;2027.46.0060&#34;],[1.5,1.5,1.5,2.5,2.5,3,1.5,1.5,2,1.5,2,2.5,2,3,1,3.5,3,2.5,4,3.5,4,4,4.5,4,5,4.5,5.5,5,5.5,4,3,5,6,4.5,4,3,5.5,6,6,6,6,7.5,6],[&#34;Rue des Epinettes 17&#34;,&#34;Route de Florissant 55&#34;,&#34;Route de Florissant 55&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Genève 123 A&#34;,&#34;Rue Tronchin 12&#34;,&#34;Rue de la Tour-de-Boël 2&#34;,&#34;Chemin Taverney 15&#34;,&#34;Rue Liotard 8&#34;,&#34;Chemin du Pré-Cartelier 4&#34;,&#34;Rue des Deux-Ponts 20&#34;,&#34;Rue du Vieux-Billard 4&#34;,&#34;Avenue de la Jonction 4&#34;,&#34;Grand-Rue 10&#34;,&#34;Grand-Montfleury 30&#34;,&#34;Rue des Peupliers 16&#34;,&#34;Chemin Taverney 16&#34;,&#34;Route de Mon-IdÃ©e 63&#34;,&#34;Rue de ChÃªne-Bougeries 10&#34;,&#34;Chemin des Champs-Gottreux 10&#34;,&#34;Rue Liotard 6&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Chemin Charles-Poluzzi 25&#34;,&#34;Grand-Montfleury 42&#34;,&#34;Carrefour de Villereuse 4&#34;,&#34;Chemin des Palettes 27&#34;,&#34;Rue Jean-Violette 1&#34;,&#34;Grand-Montfleury 52&#34;,&#34;Avenue de la Grenade 28&#34;,&#34;Rue Emile-Yung 6&#34;,&#34;Avenue de la Grenade 28&#34;,&#34;Chemin De-Sales 13 D&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Avenue de la Grenade 28&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;],[46.1896315,46.1939272,46.1939272,46.2084185,46.2084185,46.1929323,46.2097937,46.2026089,46.2298375,46.2097108,46.2183365,46.2009419,46.2003774,46.2011516,46.20209,null,46.1890959,46.2292727,46.2078181,46.1968155,46.1740593,46.2096584,46.1750094,46.179063,46.2932679,46.2003182,46.1756607,46.1941321,46.2923369,46.2052433,46.195653,46.2052433,46.2143532,46.2167452,46.2167452,46.1976599,46.1792898,46.2024683,46.2043919,46.2001689,46.2052433,46.1818628,46.2061894],[6.136595,6.1613533,6.1613533,6.1300667,6.1300667,6.2037003,6.1342851,6.1447585,6.1194662,6.1341186,6.1326113,6.1295739,6.1392531,6.1298122,6.1451254,null,6.1455591,6.1188706,6.2174091,6.1895033,6.1158323,6.1342495,6.1193707,6.1477921,6.1651556,6.1592597,6.1196906,6.14382,6.1647751,6.1617633,6.1493547,6.1617633,6.0882319,6.1316818,6.1316818,6.1462625,6.1479551,6.1840869,6.1308513,6.1723494,6.1617633,6.1401097,6.1306914],[950,1050,1050,1050,1072,1100,1150,1200,1290,1350,1355,1400,1425,1480,1500,1525,1550,1550,1620,1850,1930,2000,2100,2200,2500,2590,2600,2650,2700,2700,2800,2800,2980,3030,3117,3200,3500,4200,4200,4500,4500,4900,5050],[90,110,110,120,120,125,105,100,100,135,110,100,105,122,100,135,135,100,120,160,115,170,170,150,185,200,195,200,200,null,null,null,270,200,220,150,200,280,265,350,null,350,350]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;id\u003c/th&gt;\n      &lt;th&gt;rooms\u003c/th&gt;\n      &lt;th&gt;address\u003c/th&gt;\n      &lt;th&gt;latitude\u003c/th&gt;\n      &lt;th&gt;longitude\u003c/th&gt;\n      &lt;th&gt;rent\u003c/th&gt;\n      &lt;th&gt;charges\u003c/th&gt;\n    \u003c/tr&gt;\n  \u003c/thead&gt;\n\u003c/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:[1,3,4,5,6]}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;div id=&#34;htmlwidget-5981f4de466af83cfa6f&#34; style=&#34;width:100%;height:auto;&#34; class=&#34;datatables html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-5981f4de466af83cfa6f&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 1 : Offers scraped using the field centric way\u003c/caption&gt;&#34;,&#34;data&#34;:[[&#34;0371.41.0030&#34;,&#34;0042.43.0010&#34;,&#34;0042.44.0050&#34;,&#34;0645.40.0300&#34;,&#34;0645.44.0430&#34;,&#34;0110.41.0010&#34;,&#34;2120.43.0040&#34;,&#34;0399.45.0020&#34;,&#34;2013.45.0030&#34;,&#34;0573.44.0450&#34;,&#34;2322.41.0030&#34;,&#34;0649.40.0010&#34;,&#34;0009.41.0020&#34;,&#34;0626.41.0010&#34;,&#34;2190.41.0010&#34;,&#34;0575.47.0030&#34;,&#34;0627.42.0020&#34;,&#34;2023.42.0030&#34;,&#34;0632.43.0070&#34;,&#34;2306.40.0030&#34;,&#34;0553.43.0010&#34;,&#34;0572.43.0330&#34;,&#34;0108.43.0020&#34;,&#34;2579.41.0020&#34;,&#34;0256.43.0010&#34;,&#34;0475.42.0010&#34;,&#34;0116.46.0020&#34;,&#34;0192.47.0030&#34;,&#34;0253.41.0040&#34;,&#34;7450.41.0010&#34;,&#34;2469.40.0020&#34;,&#34;7450.42.0020&#34;,&#34;2140.42.0020&#34;,&#34;0022.40.0010&#34;,&#34;0022.43.0010&#34;,&#34;0082.44.0030&#34;,&#34;2581.43.0010&#34;,&#34;0033.48.0020&#34;,&#34;0695.42.0010&#34;,&#34;0615.45.0010&#34;,&#34;7450.43.0010&#34;,&#34;0294.43.0020&#34;,&#34;2027.46.0060&#34;],[1.5,1.5,1.5,2.5,2.5,3,1.5,1.5,2,1.5,2,2.5,2,3,1,3.5,3,2.5,4,3.5,4,4,4.5,4,5,4.5,5.5,5,5.5,4,3,5,6,4.5,4,3,5.5,6,6,6,6,7.5,6],[&#34;Rue des Epinettes 17&#34;,&#34;Route de Florissant 55&#34;,&#34;Route de Florissant 55&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Genève 123 A&#34;,&#34;Rue Tronchin 12&#34;,&#34;Rue de la Tour-de-Boël 2&#34;,&#34;Chemin Taverney 15&#34;,&#34;Rue Liotard 8&#34;,&#34;Chemin du Pré-Cartelier 4&#34;,&#34;Rue des Deux-Ponts 20&#34;,&#34;Rue du Vieux-Billard 4&#34;,&#34;Avenue de la Jonction 4&#34;,&#34;Grand-Rue 10&#34;,&#34;Grand-Montfleury 30&#34;,&#34;Rue des Peupliers 16&#34;,&#34;Chemin Taverney 16&#34;,&#34;Route de Mon-IdÃ©e 63&#34;,&#34;Rue de ChÃªne-Bougeries 10&#34;,&#34;Chemin des Champs-Gottreux 10&#34;,&#34;Rue Liotard 6&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Chemin Charles-Poluzzi 25&#34;,&#34;Grand-Montfleury 42&#34;,&#34;Carrefour de Villereuse 4&#34;,&#34;Chemin des Palettes 27&#34;,&#34;Rue Jean-Violette 1&#34;,&#34;Grand-Montfleury 52&#34;,&#34;Avenue de la Grenade 28&#34;,&#34;Rue Emile-Yung 6&#34;,&#34;Avenue de la Grenade 28&#34;,&#34;Chemin De-Sales 13 D&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Avenue de la Grenade 28&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;],[46.1896315,46.1939272,46.1939272,46.2084185,46.2084185,46.1929323,46.2097937,46.2026089,46.2298375,46.2097108,46.2183365,46.2009419,46.2003774,46.2011516,46.20209,null,46.1890959,46.2292727,46.2078181,46.1968155,46.1740593,46.2096584,46.1750094,46.179063,46.2932679,46.2003182,46.1756607,46.1941321,46.2923369,46.2052433,46.195653,46.2052433,46.2143532,46.2167452,46.2167452,46.1976599,46.1792898,46.2024683,46.2043919,46.2001689,46.2052433,46.1818628,46.2061894],[6.136595,6.1613533,6.1613533,6.1300667,6.1300667,6.2037003,6.1342851,6.1447585,6.1194662,6.1341186,6.1326113,6.1295739,6.1392531,6.1298122,6.1451254,null,6.1455591,6.1188706,6.2174091,6.1895033,6.1158323,6.1342495,6.1193707,6.1477921,6.1651556,6.1592597,6.1196906,6.14382,6.1647751,6.1617633,6.1493547,6.1617633,6.0882319,6.1316818,6.1316818,6.1462625,6.1479551,6.1840869,6.1308513,6.1723494,6.1617633,6.1401097,6.1306914],[950,1050,1050,1050,1072,1100,1150,1200,1290,1350,1355,1400,1425,1480,1500,1525,1550,1550,1620,1850,1930,2000,2100,2200,2500,2590,2600,2650,2700,2700,2800,2800,2980,3030,3117,3200,3500,4200,4200,4500,4500,4900,5050],[90,110,110,120,120,125,105,100,100,135,110,100,105,122,100,135,135,100,120,160,115,170,170,150,185,200,195,200,200,null,null,null,270,200,220,150,200,280,265,350,null,350,350]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;id\u003c/th&gt;\n      &lt;th&gt;rooms\u003c/th&gt;\n      &lt;th&gt;address\u003c/th&gt;\n      &lt;th&gt;latitude\u003c/th&gt;\n      &lt;th&gt;longitude\u003c/th&gt;\n      &lt;th&gt;rent\u003c/th&gt;\n      &lt;th&gt;charges\u003c/th&gt;\n    \u003c/tr&gt;\n  \u003c/thead&gt;\n\u003c/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:[1,3,4,5,6]}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
 &lt;/div&gt;
 &lt;div id=&#34;parsing-with-the-offer-centric-way&#34; class=&#34;section level4&#34;&gt;
 &lt;h4&gt;Parsing with the offer centric way&lt;/h4&gt;
@@ -451,8 +670,8 @@ DT::datatable(
   options = list(pageLength = 5, dom = &amp;#39;tpi&amp;#39;),
   rownames = FALSE,
   caption = &amp;quot;Table 2 : Offers scraped using the offer centric way&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
-&lt;div id=&#34;htmlwidget-611391da1c596dfd66d9&#34; style=&#34;width:100%;height:auto;&#34; class=&#34;datatables html-widget&#34;&gt;&lt;/div&gt;
-&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-611391da1c596dfd66d9&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 2 : Offers scraped using the offer centric way\u003c/caption&gt;&#34;,&#34;data&#34;:[[&#34;0371.41.0030&#34;,&#34;0042.43.0010&#34;,&#34;0042.44.0050&#34;,&#34;0645.40.0300&#34;,&#34;0645.44.0430&#34;,&#34;0110.41.0010&#34;,&#34;2120.43.0040&#34;,&#34;0399.45.0020&#34;,&#34;2013.45.0030&#34;,&#34;0573.44.0450&#34;,&#34;2322.41.0030&#34;,&#34;0649.40.0010&#34;,&#34;0009.41.0020&#34;,&#34;0626.41.0010&#34;,&#34;2190.41.0010&#34;,&#34;0627.42.0020&#34;,&#34;2023.42.0030&#34;,&#34;0632.43.0070&#34;,&#34;2306.40.0030&#34;,&#34;0553.43.0010&#34;,&#34;0572.43.0330&#34;,&#34;0108.43.0020&#34;,&#34;2579.41.0020&#34;,&#34;0256.43.0010&#34;,&#34;0475.42.0010&#34;,&#34;0116.46.0020&#34;,&#34;0192.47.0030&#34;,&#34;0253.41.0040&#34;,&#34;2140.42.0020&#34;,&#34;0022.40.0010&#34;,&#34;0022.43.0010&#34;,&#34;0082.44.0030&#34;,&#34;2581.43.0010&#34;,&#34;0033.48.0020&#34;,&#34;0695.42.0010&#34;,&#34;0615.45.0010&#34;,&#34;0294.43.0020&#34;,&#34;2027.46.0060&#34;],[&#34;Rue des Epinettes 17&#34;,&#34;Route de Florissant 55&#34;,&#34;Route de Florissant 55&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Genève 123 A&#34;,&#34;Rue Tronchin 12&#34;,&#34;Rue de la Tour-de-Boël 2&#34;,&#34;Chemin Taverney 15&#34;,&#34;Rue Liotard 8&#34;,&#34;Chemin du Pré-Cartelier 4&#34;,&#34;Rue des Deux-Ponts 20&#34;,&#34;Rue du Vieux-Billard 4&#34;,&#34;Avenue de la Jonction 4&#34;,&#34;Grand-Rue 10&#34;,&#34;Rue des Peupliers 16&#34;,&#34;Chemin Taverney 16&#34;,&#34;Route de Mon-IdÃ©e 63&#34;,&#34;Rue de ChÃªne-Bougeries 10&#34;,&#34;Chemin des Champs-Gottreux 10&#34;,&#34;Rue Liotard 6&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Chemin Charles-Poluzzi 25&#34;,&#34;Grand-Montfleury 42&#34;,&#34;Carrefour de Villereuse 4&#34;,&#34;Chemin des Palettes 27&#34;,&#34;Rue Jean-Violette 1&#34;,&#34;Grand-Montfleury 52&#34;,&#34;Chemin De-Sales 13 D&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;],[1.5,1.5,1.5,2.5,2.5,3,1.5,1.5,2,1.5,2,2.5,2,3,1,3,2.5,4,3.5,4,4,4.5,4,5,4.5,5.5,5,5.5,6,4.5,4,3,5.5,6,6,6,7.5,6],[46.1896315,46.1939272,46.1939272,46.2084185,46.2084185,46.1929323,46.2097937,46.2026089,46.2298375,46.2097108,46.2183365,46.2009419,46.2003774,46.2011516,46.20209,46.1890959,46.2292727,46.2078181,46.1968155,46.1740593,46.2096584,46.1750094,46.179063,46.2932679,46.2003182,46.1756607,46.1941321,46.2923369,46.2143532,46.2167452,46.2167452,46.1976599,46.1792898,46.2024683,46.2043919,46.2001689,46.1818628,46.2061894],[6.136595,6.1613533,6.1613533,6.1300667,6.1300667,6.2037003,6.1342851,6.1447585,6.1194662,6.1341186,6.1326113,6.1295739,6.1392531,6.1298122,6.1451254,6.1455591,6.1188706,6.2174091,6.1895033,6.1158323,6.1342495,6.1193707,6.1477921,6.1651556,6.1592597,6.1196906,6.14382,6.1647751,6.0882319,6.1316818,6.1316818,6.1462625,6.1479551,6.1840869,6.1308513,6.1723494,6.1401097,6.1306914],[950,1050,1050,1050,1072,1100,1150,1200,1290,1350,1355,1400,1425,1480,1500,1550,1550,1620,1850,1930,2000,2100,2200,2500,2590,2600,2650,2700,2980,3030,3117,3200,3500,4200,4200,4500,4900,5050],[90,110,110,120,120,125,105,100,100,135,110,100,105,122,100,135,100,120,160,115,170,170,150,185,200,195,200,200,270,200,220,150,200,280,265,350,350,350]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;id\u003c/th&gt;\n      &lt;th&gt;address\u003c/th&gt;\n      &lt;th&gt;room\u003c/th&gt;\n      &lt;th&gt;latitude\u003c/th&gt;\n      &lt;th&gt;longitude\u003c/th&gt;\n      &lt;th&gt;rent\u003c/th&gt;\n      &lt;th&gt;charges\u003c/th&gt;\n    \u003c/tr&gt;\n  \u003c/thead&gt;\n\u003c/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:[2,3,4,5,6]}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;div id=&#34;htmlwidget-61518a7ffc8c565fe813&#34; style=&#34;width:100%;height:auto;&#34; class=&#34;datatables html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-61518a7ffc8c565fe813&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 2 : Offers scraped using the offer centric way\u003c/caption&gt;&#34;,&#34;data&#34;:[[&#34;0371.41.0030&#34;,&#34;0042.43.0010&#34;,&#34;0042.44.0050&#34;,&#34;0645.40.0300&#34;,&#34;0645.44.0430&#34;,&#34;0110.41.0010&#34;,&#34;2120.43.0040&#34;,&#34;0399.45.0020&#34;,&#34;2013.45.0030&#34;,&#34;0573.44.0450&#34;,&#34;2322.41.0030&#34;,&#34;0649.40.0010&#34;,&#34;0009.41.0020&#34;,&#34;0626.41.0010&#34;,&#34;2190.41.0010&#34;,&#34;0627.42.0020&#34;,&#34;2023.42.0030&#34;,&#34;0632.43.0070&#34;,&#34;2306.40.0030&#34;,&#34;0553.43.0010&#34;,&#34;0572.43.0330&#34;,&#34;0108.43.0020&#34;,&#34;2579.41.0020&#34;,&#34;0256.43.0010&#34;,&#34;0475.42.0010&#34;,&#34;0116.46.0020&#34;,&#34;0192.47.0030&#34;,&#34;0253.41.0040&#34;,&#34;2140.42.0020&#34;,&#34;0022.40.0010&#34;,&#34;0022.43.0010&#34;,&#34;0082.44.0030&#34;,&#34;2581.43.0010&#34;,&#34;0033.48.0020&#34;,&#34;0695.42.0010&#34;,&#34;0615.45.0010&#34;,&#34;0294.43.0020&#34;,&#34;2027.46.0060&#34;],[&#34;Rue des Epinettes 17&#34;,&#34;Route de Florissant 55&#34;,&#34;Route de Florissant 55&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Genève 123 A&#34;,&#34;Rue Tronchin 12&#34;,&#34;Rue de la Tour-de-Boël 2&#34;,&#34;Chemin Taverney 15&#34;,&#34;Rue Liotard 8&#34;,&#34;Chemin du Pré-Cartelier 4&#34;,&#34;Rue des Deux-Ponts 20&#34;,&#34;Rue du Vieux-Billard 4&#34;,&#34;Avenue de la Jonction 4&#34;,&#34;Grand-Rue 10&#34;,&#34;Rue des Peupliers 16&#34;,&#34;Chemin Taverney 16&#34;,&#34;Route de Mon-IdÃ©e 63&#34;,&#34;Rue de ChÃªne-Bougeries 10&#34;,&#34;Chemin des Champs-Gottreux 10&#34;,&#34;Rue Liotard 6&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Chemin Charles-Poluzzi 25&#34;,&#34;Grand-Montfleury 42&#34;,&#34;Carrefour de Villereuse 4&#34;,&#34;Chemin des Palettes 27&#34;,&#34;Rue Jean-Violette 1&#34;,&#34;Grand-Montfleury 52&#34;,&#34;Chemin De-Sales 13 D&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;],[1.5,1.5,1.5,2.5,2.5,3,1.5,1.5,2,1.5,2,2.5,2,3,1,3,2.5,4,3.5,4,4,4.5,4,5,4.5,5.5,5,5.5,6,4.5,4,3,5.5,6,6,6,7.5,6],[46.1896315,46.1939272,46.1939272,46.2084185,46.2084185,46.1929323,46.2097937,46.2026089,46.2298375,46.2097108,46.2183365,46.2009419,46.2003774,46.2011516,46.20209,46.1890959,46.2292727,46.2078181,46.1968155,46.1740593,46.2096584,46.1750094,46.179063,46.2932679,46.2003182,46.1756607,46.1941321,46.2923369,46.2143532,46.2167452,46.2167452,46.1976599,46.1792898,46.2024683,46.2043919,46.2001689,46.1818628,46.2061894],[6.136595,6.1613533,6.1613533,6.1300667,6.1300667,6.2037003,6.1342851,6.1447585,6.1194662,6.1341186,6.1326113,6.1295739,6.1392531,6.1298122,6.1451254,6.1455591,6.1188706,6.2174091,6.1895033,6.1158323,6.1342495,6.1193707,6.1477921,6.1651556,6.1592597,6.1196906,6.14382,6.1647751,6.0882319,6.1316818,6.1316818,6.1462625,6.1479551,6.1840869,6.1308513,6.1723494,6.1401097,6.1306914],[950,1050,1050,1050,1072,1100,1150,1200,1290,1350,1355,1400,1425,1480,1500,1550,1550,1620,1850,1930,2000,2100,2200,2500,2590,2600,2650,2700,2980,3030,3117,3200,3500,4200,4200,4500,4900,5050],[90,110,110,120,120,125,105,100,100,135,110,100,105,122,100,135,100,120,160,115,170,170,150,185,200,195,200,200,270,200,220,150,200,280,265,350,350,350]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;id\u003c/th&gt;\n      &lt;th&gt;address\u003c/th&gt;\n      &lt;th&gt;room\u003c/th&gt;\n      &lt;th&gt;latitude\u003c/th&gt;\n      &lt;th&gt;longitude\u003c/th&gt;\n      &lt;th&gt;rent\u003c/th&gt;\n      &lt;th&gt;charges\u003c/th&gt;\n    \u003c/tr&gt;\n  \u003c/thead&gt;\n\u003c/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:[2,3,4,5,6]}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
@@ -486,8 +705,8 @@ m &amp;lt;- leaflet(offers) %&amp;gt;%
              lat=~latitude,
              popup=offers$address)
 m&lt;/code&gt;&lt;/pre&gt;
-&lt;div id=&#34;htmlwidget-6714a756b896df6f7415&#34; style=&#34;width:672px;height:480px;&#34; class=&#34;leaflet html-widget&#34;&gt;&lt;/div&gt;
-&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-6714a756b896df6f7415&#34;&gt;{&#34;x&#34;:{&#34;options&#34;:{&#34;crs&#34;:{&#34;crsClass&#34;:&#34;L.CRS.EPSG3857&#34;,&#34;code&#34;:null,&#34;proj4def&#34;:null,&#34;projectedBounds&#34;:null,&#34;options&#34;:{}}},&#34;calls&#34;:[{&#34;method&#34;:&#34;addProviderTiles&#34;,&#34;args&#34;:[&#34;CartoDB.Positron&#34;,null,null,{&#34;errorTileUrl&#34;:&#34;&#34;,&#34;noWrap&#34;:false,&#34;zIndex&#34;:null,&#34;unloadInvisibleTiles&#34;:null,&#34;updateWhenIdle&#34;:null,&#34;detectRetina&#34;:false,&#34;reuseTiles&#34;:false}]},{&#34;method&#34;:&#34;addMarkers&#34;,&#34;args&#34;:[[46.1896315,46.1939272,46.1939272,46.2084185,46.2084185,46.1929323,46.2097937,46.2026089,46.2298375,46.2097108,46.2183365,46.2009419,46.2003774,46.2011516,46.20209,46.1890959,46.2292727,46.2078181,46.1968155,46.1740593,46.2096584,46.1750094,46.179063,46.2932679,46.2003182,46.1756607,46.1941321,46.2923369,46.2143532,46.2167452,46.2167452,46.1976599,46.1792898,46.2024683,46.2043919,46.2001689,46.1818628,46.2061894],[6.136595,6.1613533,6.1613533,6.1300667,6.1300667,6.2037003,6.1342851,6.1447585,6.1194662,6.1341186,6.1326113,6.1295739,6.1392531,6.1298122,6.1451254,6.1455591,6.1188706,6.2174091,6.1895033,6.1158323,6.1342495,6.1193707,6.1477921,6.1651556,6.1592597,6.1196906,6.14382,6.1647751,6.0882319,6.1316818,6.1316818,6.1462625,6.1479551,6.1840869,6.1308513,6.1723494,6.1401097,6.1306914],null,null,null,{&#34;clickable&#34;:true,&#34;draggable&#34;:false,&#34;keyboard&#34;:true,&#34;title&#34;:&#34;&#34;,&#34;alt&#34;:&#34;&#34;,&#34;zIndexOffset&#34;:0,&#34;opacity&#34;:1,&#34;riseOnHover&#34;:false,&#34;riseOffset&#34;:250},[&#34;Rue des Epinettes 17&#34;,&#34;Route de Florissant 55&#34;,&#34;Route de Florissant 55&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Genève 123 A&#34;,&#34;Rue Tronchin 12&#34;,&#34;Rue de la Tour-de-Boël 2&#34;,&#34;Chemin Taverney 15&#34;,&#34;Rue Liotard 8&#34;,&#34;Chemin du Pré-Cartelier 4&#34;,&#34;Rue des Deux-Ponts 20&#34;,&#34;Rue du Vieux-Billard 4&#34;,&#34;Avenue de la Jonction 4&#34;,&#34;Grand-Rue 10&#34;,&#34;Rue des Peupliers 16&#34;,&#34;Chemin Taverney 16&#34;,&#34;Route de Mon-IdÃ©e 63&#34;,&#34;Rue de ChÃªne-Bougeries 10&#34;,&#34;Chemin des Champs-Gottreux 10&#34;,&#34;Rue Liotard 6&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Chemin Charles-Poluzzi 25&#34;,&#34;Grand-Montfleury 42&#34;,&#34;Carrefour de Villereuse 4&#34;,&#34;Chemin des Palettes 27&#34;,&#34;Rue Jean-Violette 1&#34;,&#34;Grand-Montfleury 52&#34;,&#34;Chemin De-Sales 13 D&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;],null,null,null,null,null,null]}],&#34;limits&#34;:{&#34;lat&#34;:[46.1740593,46.2932679],&#34;lng&#34;:[6.0882319,6.2174091]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;div id=&#34;htmlwidget-32f0e6aedfc1e24d3e1c&#34; style=&#34;width:672px;height:480px;&#34; class=&#34;leaflet html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-32f0e6aedfc1e24d3e1c&#34;&gt;{&#34;x&#34;:{&#34;options&#34;:{&#34;crs&#34;:{&#34;crsClass&#34;:&#34;L.CRS.EPSG3857&#34;,&#34;code&#34;:null,&#34;proj4def&#34;:null,&#34;projectedBounds&#34;:null,&#34;options&#34;:{}}},&#34;calls&#34;:[{&#34;method&#34;:&#34;addProviderTiles&#34;,&#34;args&#34;:[&#34;CartoDB.Positron&#34;,null,null,{&#34;errorTileUrl&#34;:&#34;&#34;,&#34;noWrap&#34;:false,&#34;zIndex&#34;:null,&#34;unloadInvisibleTiles&#34;:null,&#34;updateWhenIdle&#34;:null,&#34;detectRetina&#34;:false,&#34;reuseTiles&#34;:false}]},{&#34;method&#34;:&#34;addMarkers&#34;,&#34;args&#34;:[[46.1896315,46.1939272,46.1939272,46.2084185,46.2084185,46.1929323,46.2097937,46.2026089,46.2298375,46.2097108,46.2183365,46.2009419,46.2003774,46.2011516,46.20209,46.1890959,46.2292727,46.2078181,46.1968155,46.1740593,46.2096584,46.1750094,46.179063,46.2932679,46.2003182,46.1756607,46.1941321,46.2923369,46.2143532,46.2167452,46.2167452,46.1976599,46.1792898,46.2024683,46.2043919,46.2001689,46.1818628,46.2061894],[6.136595,6.1613533,6.1613533,6.1300667,6.1300667,6.2037003,6.1342851,6.1447585,6.1194662,6.1341186,6.1326113,6.1295739,6.1392531,6.1298122,6.1451254,6.1455591,6.1188706,6.2174091,6.1895033,6.1158323,6.1342495,6.1193707,6.1477921,6.1651556,6.1592597,6.1196906,6.14382,6.1647751,6.0882319,6.1316818,6.1316818,6.1462625,6.1479551,6.1840869,6.1308513,6.1723494,6.1401097,6.1306914],null,null,null,{&#34;clickable&#34;:true,&#34;draggable&#34;:false,&#34;keyboard&#34;:true,&#34;title&#34;:&#34;&#34;,&#34;alt&#34;:&#34;&#34;,&#34;zIndexOffset&#34;:0,&#34;opacity&#34;:1,&#34;riseOnHover&#34;:false,&#34;riseOffset&#34;:250},[&#34;Rue des Epinettes 17&#34;,&#34;Route de Florissant 55&#34;,&#34;Route de Florissant 55&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Genève 123 A&#34;,&#34;Rue Tronchin 12&#34;,&#34;Rue de la Tour-de-Boël 2&#34;,&#34;Chemin Taverney 15&#34;,&#34;Rue Liotard 8&#34;,&#34;Chemin du Pré-Cartelier 4&#34;,&#34;Rue des Deux-Ponts 20&#34;,&#34;Rue du Vieux-Billard 4&#34;,&#34;Avenue de la Jonction 4&#34;,&#34;Grand-Rue 10&#34;,&#34;Rue des Peupliers 16&#34;,&#34;Chemin Taverney 16&#34;,&#34;Route de Mon-IdÃ©e 63&#34;,&#34;Rue de ChÃªne-Bougeries 10&#34;,&#34;Chemin des Champs-Gottreux 10&#34;,&#34;Rue Liotard 6&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Chemin Charles-Poluzzi 25&#34;,&#34;Grand-Montfleury 42&#34;,&#34;Carrefour de Villereuse 4&#34;,&#34;Chemin des Palettes 27&#34;,&#34;Rue Jean-Violette 1&#34;,&#34;Grand-Montfleury 52&#34;,&#34;Chemin De-Sales 13 D&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;],null,null,null,null,null,null]}],&#34;limits&#34;:{&#34;lat&#34;:[46.1740593,46.2932679],&#34;lng&#34;:[6.0882319,6.2174091]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div id=&#34;ressources&#34; class=&#34;section level2&#34;&gt;

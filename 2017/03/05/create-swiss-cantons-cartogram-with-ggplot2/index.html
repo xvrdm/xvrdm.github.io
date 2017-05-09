@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.18.1" />
+
+
+<title>Create Swiss cantons cartogram with ggplot2 - Invalid Input</title>
+<meta property="og:title" content="Create Swiss cantons cartogram with ggplot2 - Invalid Input">
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="../../../../css/fonts.css" media="all">
+<link rel="stylesheet" href="../../../../css/main.css" media="all">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Ubuntu+Mono:400,400i,700,700i">
+
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="../../../../" class="nav-logo">
+    <img src="../../../../images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="../../../../about/">About</a></li>
+    
+    <li><a href="https://github.com/xvrdm">GitHub</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">3 min read</span>
+    
+
+    <h1 class="article-title">Create Swiss cantons cartogram with ggplot2</h1>
+
+    
+    <span class="article-date">2017/03/05</span>
+    
+
+    <div class="article-content">
+
+
+<div id="TOC">
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+</ul>
+</div>
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>While reading <a href="www.rweekly.org">rweekly</a> past issues, I stumbbled upon a post from <a href="http://maxhumber.com/2017/02/15/tile_canada.html">Max Humber</a>, explaining how he tried to design a tile grid map / state cartogram for Canada. I had never seen such design and thought that it would be a great fit for Swiss cantons. While browsing the excellent repositories of <a href="https://github.com/hrbrmstr">Bob Rudis</a>, I realised that he had written <a href="https://github.com/hrbrmstr/statebins">statebin</a>, a ggplot extension to easily create US state cartogram. This post is my attempt to convert his code to handle Swiss cantons.</p>
+<p>In hrbrmstr library, US states are on a 8x12 grid.</p>
+<div class="figure">
+<img src="../../../../img/2017-03-05-cantonbins-scrsh-hrbrmstr-statesbin.png" alt="US States mapped with statebins. Source: https://github.com/hrbrmstr/statebins" />
+<p class="caption">US States mapped with statebins. Source: <a href="https://github.com/hrbrmstr/statebins" class="uri">https://github.com/hrbrmstr/statebins</a></p>
+</div>
+<p>These coordinates are saved with the full and abbreviated names in a dataframe. The <code>L</code> suffix after the numbers is a <a href="http://stackoverflow.com/questions/24350733/why-would-r-use-the-l-suffix-to-denote-an-integer">way to specify integer</a>.</p>
+<pre class="r"><code># Original code from hrbrmstr
+# source: https://github.com/hrbrmstr/statebins/blob/master/R/statebins.R
+state_coords &lt;- structure(
+  list(abbrev = c(&quot;AL&quot;, &quot;AK&quot;, &quot;AZ&quot;, &quot;AR&quot;, &quot;CA&quot;, &quot;CO&quot;,
+                  &quot;CT&quot;, &quot;DC&quot;, &quot;DE&quot;, &quot;FL&quot;, &quot;GA&quot;, &quot;HI&quot;,
+                  &quot;ID&quot;, &quot;IL&quot;, &quot;IN&quot;, &quot;IA&quot;, &quot;KS&quot;, &quot;KY&quot;, 
+                  &quot;LA&quot;, &quot;ME&quot;, &quot;MD&quot;, &quot;MA&quot;, &quot;MI&quot;, &quot;MN&quot;,
+                  &quot;MS&quot;, &quot;MO&quot;, &quot;MT&quot;, &quot;NE&quot;, &quot;NV&quot;, &quot;NH&quot;, 
+                  &quot;NJ&quot;, &quot;NM&quot;, &quot;NY&quot;, &quot;NC&quot;, &quot;ND&quot;, &quot;OH&quot;, 
+                  &quot;OK&quot;, &quot;OR&quot;, &quot;PA&quot;, &quot;RI&quot;, &quot;SC&quot;, &quot;SD&quot;, 
+                  &quot;TN&quot;, &quot;TX&quot;, &quot;UT&quot;, &quot;VT&quot;, &quot;VA&quot;, &quot;WA&quot;, 
+                  &quot;WV&quot;, &quot;WI&quot;, &quot;WY&quot;, &quot;PR&quot;),
+       it = c(&quot;Alabama&quot;, &quot;Alaska&quot;, &quot;Arizona&quot;, &quot;Arkansas&quot;,
+              &quot;California&quot;, &quot;Colorado&quot;, &quot;Connecticut&quot;, 
+              &quot;District of Columbia&quot;, &quot;Delaware&quot;, &quot;Florida&quot;, 
+              &quot;Georgia&quot;, &quot;Hawaii&quot;, &quot;Idaho&quot;, &quot;Illinois&quot;, 
+              &quot;Indiana&quot;, &quot;Iowa&quot;, &quot;Kansas&quot;, &quot;Kentucky&quot;, 
+              &quot;Louisiana&quot;, &quot;Maine&quot;, &quot;Maryland&quot;, 
+              &quot;Massachusetts&quot;, &quot;Michigan&quot;, &quot;Minnesota&quot;, 
+              &quot;Mississippi&quot;, &quot;Missouri&quot;, &quot;Montana&quot;, 
+              &quot;Nebraska&quot;, &quot;Nevada&quot;, &quot;New Hampshire&quot;,
+              &quot;New Jersey&quot;, &quot;New Mexico&quot;, &quot;New York&quot;,
+              &quot;North Carolina&quot;, &quot;North Dakota&quot;, &quot;Ohio&quot;,
+              &quot;Oklahoma&quot;, &quot;Oregon&quot;, &quot;Pennsylvania&quot;,
+              &quot;Rhode Island&quot;, &quot;South Carolina&quot;,
+              &quot;South Dakota&quot;, &quot;Tennessee&quot;, &quot;Texas&quot;, &quot;Utah&quot;,
+              &quot;Vermont&quot;, &quot;Virginia&quot;, &quot;Washington&quot;,
+              &quot;West Virginia&quot;, &quot;Wisconsin&quot;, &quot;Wyoming&quot;,
+              &quot;Puerto Rico&quot;),
+       col = c(8L, 1L, 3L, 6L, 2L, 4L, 11L, 10L, 11L, 10L,
+               9L, 1L, 3L, 7L, 7L, 6L, 5L, 7L, 6L, 12L,
+               10L, 11L, 8L, 6L, 7L, 6L, 4L, 5L, 3L, 12L,
+               10L, 4L, 10L, 8L, 5L, 8L, 5L, 2L, 9L, 12L,
+               9L, 5L, 7L, 5L, 3L, 11L, 9L, 2L, 8L, 7L, 4L, 12L),
+       row = c(7L, 7L, 6L, 6L, 5L, 5L, 4L, 6L, 5L, 8L, 7L,
+               8L, 3L, 3L, 4L, 4L, 6L, 5L, 7L, 1L, 5L, 3L,
+               3L, 3L, 7L, 5L, 3L, 5L, 4L, 2L, 4L, 6L, 3L, 
+               6L, 3L, 4L, 7L, 4L, 4L, 4L, 6L, 4L, 6L, 8L,
+               5L, 2L, 5L, 3L, 5L, 2L, 4L, 8L)),
+  .Names = c(&quot;abbrev&quot;, &quot;state&quot;, &quot;col&quot;, &quot;row&quot;),
+  class = &quot;data.frame&quot;, 
+  row.names = c(NA, -52L)
+)</code></pre>
+<p>To sketch the mockup of your tile grid, excel can come to rescue.</p>
+<div class="figure">
+<img src="../../../../img/2017-03-05-cantonbins-scrsh-excel.png" alt="Mock up of Swiss tile grid" />
+<p class="caption">Mock up of Swiss tile grid</p>
+</div>
+<p>This mock up translates to the data frame below (adding the names in each national languages).</p>
+<pre class="r"><code>canton_coords &lt;- structure(
+  list(abbrev = c(&quot;AG&quot;, &quot;AI&quot;, &quot;AR&quot;, &quot;BE&quot;, &quot;BL&quot;, &quot;BS&quot;, &quot;FR&quot;,
+                  &quot;GE&quot;, &quot;GL&quot;, &quot;GR&quot;, &quot;JU&quot;, &quot;LU&quot;, &quot;NE&quot;, &quot;NW&quot;,
+                  &quot;OW&quot;, &quot;SG&quot;, &quot;SH&quot;, &quot;SO&quot;, &quot;SZ&quot;, &quot;TG&quot;, &quot;TI&quot;,
+                  &quot;UR&quot;, &quot;VD&quot;, &quot;VS&quot;, &quot;ZG&quot;, &quot;ZH&quot;),
+       fr_name = c(&quot;Argovie&quot;, &quot;Appenzell Rhodes-Intérieures&quot;,
+                   &quot;Appenzell Rhodes-Extérieures&quot;, &quot;Berne&quot;,
+                   &quot;Bâle-Campagne&quot;, &quot;Bâle-Ville&quot;, &quot;Fribourg&quot;,
+                   &quot;Genève&quot;, &quot;Glaris&quot;, &quot;Grisons&quot;, &quot;Jura&quot;,
+                   &quot;Lucerne&quot;, &quot;Neuchâtel&quot;, &quot;Nidwald&quot;, &quot;Obwald&quot;,
+                   &quot;Saint-Gall&quot;, &quot;Schaffhouse&quot;, &quot;Soleure&quot;, &quot;Schwytz&quot;,
+                   &quot;Thurgovie&quot;, &quot;Tessin&quot;, &quot;Uri&quot;, &quot;Vaud&quot;,
+                   &quot;Valais&quot;, &quot;Zoug&quot;, &quot;Zurich&quot;),
+       de_name = c(&quot;Aargau&quot;, &quot;Appenzell Innerrhoden&quot;,
+                   &quot;Appenzell Ausserrhoden&quot;, &quot;Bern&quot;, 
+                   &quot;Basel-Landschaft&quot;, &quot;Basel-Stadt&quot;,
+                   &quot;Freiburg&quot;, &quot;Genf&quot;, &quot;Glarus&quot;,
+                   &quot;Graubünden&quot;, &quot;Jura&quot;, &quot;Luzern&quot;,
+                   &quot;Neuenburg&quot;, &quot;Nidwalden&quot;, &quot;Obwalden&quot;,
+                   &quot;St. Gallen&quot;, &quot;Schaffhausen&quot;, &quot;Solothurn&quot;,
+                   &quot;Schwyz&quot;, &quot;Thurgau&quot;, &quot;Tessin&quot;, &quot;Uri&quot;,
+                   &quot;Waadt&quot;, &quot;Wallis&quot;, &quot;Zug&quot;, &quot;Zürich&quot;),
+       it_name = c(&quot;Argovia&quot;, &quot;Appenzello Interno&quot;,
+                   &quot;Appenzello Esterno&quot;, &quot;Berna&quot;,
+                   &quot;Basilea Campagna&quot;, &quot;Basilea Città&quot;,
+                   &quot;Friburgo&quot;, &quot;Ginevra&quot;, &quot;Glarona&quot;,
+                   &quot;Grigioni&quot;, &quot;Giura&quot;, &quot;Lucerna&quot;, &quot;Neuchâtel&quot;,
+                   &quot;Nidvaldo&quot;, &quot;Obvaldo&quot;, &quot;San Gallo&quot;,
+                   &quot;Sciaffusa&quot;, &quot;Soletta&quot;, &quot;Svitto&quot;, &quot;Turgovia&quot;,
+                   &quot;Ticino&quot;, &quot;Uri&quot;, &quot;Vaud&quot;, &quot;Vallese&quot;,
+                   &quot;Zugo&quot;, &quot;Zurigo&quot;), 
+       ru_name = c(&quot;Argovia&quot;, &quot;Appenzell Dadens&quot;,
+                   &quot;Appenzell Dadora&quot;, &quot;Berna&quot;,
+                   &quot;Basilea-Champagna&quot;, &quot;Basilea-Citad&quot;,
+                   &quot;Friburg&quot;, &quot;Genevra&quot;, &quot;Glaruna&quot;,
+                   &quot;Grischun&quot;, &quot;Giura&quot;, &quot;Lucerna&quot;, &quot;Neuchâtel&quot;,
+                   &quot;Sutsilvania&quot;, &quot;Sursilvania&quot;, &quot;Son Gagl&quot;,
+                   &quot;Schaffusa&quot;, &quot;Soloturn&quot;, &quot;Sviz&quot;, &quot;Turgovia&quot;,
+                   &quot;Tessin&quot;, &quot;Uri&quot;, &quot;Vad&quot;, &quot;Vallais&quot;,
+                   &quot;Zug&quot;, &quot;Turitg&quot;),
+       col = c(5L,8L,8L,4L,4L,4L,3L,1L,8L,9L,3L,5L,3L,
+               6L,5L,7L,6L,4L,7L,7L,7L,7L,2L,4L,6L,2L),
+       row = c(2L,3L,2L,4L,2L,1L,4L,5L,4L,4L,2L,3L,3L,
+               4L,4L,2L,1L,3L,3L,1L,5L,4L,4L,5L,3L,4L)),
+  .Names = c(&quot;abbrev&quot;, &quot;fr_name&quot;, &quot;de_name&quot;,
+             &quot;it_name&quot;, &quot;ru_name&quot;, &quot;col&quot;, &quot;row&quot;),
+  class = &quot;data.frame&quot;,
+  row.names = c(NA, -26L)
+)</code></pre>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="../../../../index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="../../../../images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+
+    
+  </body>
+</html>
+
