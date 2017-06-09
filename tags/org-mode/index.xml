@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Org Mode on Invalid Input</title>
+    <link>/tags/org-mode/index.xml</link>
+    <description>Recent content in Org Mode on Invalid Input</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <atom:link href="/tags/org-mode/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>A minimal emacs setup with orgmode</title>
+      <link>/2017/05/29/a-minimal-emacs-setup-with-orgmode/</link>
+      <pubDate>Mon, 29 May 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/05/29/a-minimal-emacs-setup-with-orgmode/</guid>
+      <description>&lt;div id=&#34;foreword&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Foreword&lt;/h2&gt;
+&lt;p&gt;Trying to start using emacs can be a bit intimidating. Very rough looking outside the box, complex keyboard shortcuts, configuration in emacs-elisp language… I personally decided to try the switch (from vim) for the following reasons:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;once configured well, emacs can rival in features with many of IDE. &lt;a href=&#34;https://elpy.readthedocs.io/&#34;&gt;Elpy&lt;/a&gt; looks great for python and &lt;a href=&#34;https://cider.readthedocs.io/&#34;&gt;CIDER&lt;/a&gt; looks amazing for clojure.&lt;/li&gt;
+&lt;li&gt;with EVIL mode, you can use VIM key-bindings in emacs&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://orgmode.org/&#34;&gt;org-mode&lt;/a&gt; lets you do things you wouldn’t believe possible with plain text&lt;/li&gt;
+&lt;li&gt;emacs can &lt;a href=&#34;https://github.com/hlissner/.emacs.d&#34;&gt;look good&lt;/a&gt;!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;There are well explained stories of vim users migrating to emacs:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=JWD1Fpdd4Pc&#34;&gt;Evil Mode: Or, How I Learned to Stop Worrying and Love Emacs - YouTube&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://juanjoalvarez.net/es/detail/2014/sep/19/vim-emacsevil-chaotic-migration-guide/&#34;&gt;From Vim to Emacs+Evil chaotic migration guide&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;But before implementing advanced features, you might want to put in place a setup that lets you start with the bare minimum (i.e vim key-bindings and an &lt;em&gt;easy&lt;/em&gt; to customize config file). Emacs is configured with a programming language called emacs-lisp. For people not knowing emacs-lisp at all, it makes sense to use &lt;a href=&#34;https://en.wikipedia.org/wiki/Literate_programming&#34;&gt;literate programming&lt;/a&gt; and &lt;a href=&#34;http://orgmode.org/worg/org-contrib/babel/&#34;&gt;org-babel&lt;/a&gt;, a technique that lets you heavily document your code. Literate programming isn’t a paradigm that necessarily work well to write entire programs with. But for config files in unknown programming languages, it’s great. Literate programming is often used for analysis and if you are coming from python or R, this is similar to what you do in &lt;a href=&#34;http://jupyter.org/&#34;&gt;jupyter&lt;/a&gt; or &lt;a href=&#34;http://rmarkdown.rstudio.com/r_notebooks.html&#34;&gt;r notebooks&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;install-emacs&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Install emacs&lt;/h2&gt;
+&lt;p&gt;First you need to install emacs. You can start &lt;a href=&#34;https://www.gnu.org/software/emacs/&#34;&gt;here&lt;/a&gt; or from any of the hundred of tutorials online. At the time of this post, version 25.2 is out and that is the one I am using.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;set-up-org-babel-config-file&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Set up org-babel config file&lt;/h2&gt;
+&lt;p&gt;Depending on how you installed emacs, you might have a &lt;code&gt;.emacs&lt;/code&gt; file in you home directory &lt;code&gt;~&lt;/code&gt;. This is similar to &lt;code&gt;.vimrc&lt;/code&gt; file for vim and usually contains config commands that are loaded at start up.&lt;/p&gt;
+&lt;p&gt;However, from the &lt;a href=&#34;https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html&#34;&gt;doc&lt;/a&gt;, we can see that there are other options to load your config:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;When Emacs is started, it normally tries to load a Lisp program from an initialization file, or init file for short. This file, if it exists, specifies how to initialize Emacs for you. Emacs looks for your init file using the filenames ~/.emacs, ~/.emacs.el, or ~/.emacs.d/init.el; you can choose to use any one of these three names (see Find Init). Here, ~/ stands for your home directory.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;In our case, we want to use &lt;code&gt;~/.emacs.d/init.el&lt;/code&gt; instead of &lt;code&gt;~/.emacs&lt;/code&gt; and use it exclusively to setup package management and load an org-babel config file (&lt;code&gt;~/.emacs.d/emacs-config.org&lt;/code&gt;). The difference in extension is important. &lt;code&gt;.el&lt;/code&gt; files are written in emacs-lisp, the programming language powering emacs. &lt;code&gt;.org&lt;/code&gt; files are org-mode files, basically plain text file that can mix code and text.&lt;/p&gt;
+&lt;p&gt;Note that if you are using windows, the &lt;code&gt;~&lt;/code&gt; directory might be &lt;code&gt;C:\Users\&amp;lt;user-name&amp;gt;\AppData\Roaming&lt;/code&gt; or even something else. There are hints &lt;a href=&#34;https://www.gnu.org/software/emacs/manual/html_node/efaq-w32/Location-of-init-file.html&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;ol style=&#34;list-style-type: decimal&#34;&gt;
+&lt;li&gt;Delete file &lt;code&gt;~/.emacs&lt;/code&gt; if you have one&lt;/li&gt;
+&lt;li&gt;Create dir &lt;code&gt;~/.emacs.d/&lt;/code&gt; if you don’t have one&lt;/li&gt;
+&lt;li&gt;Create file &lt;code&gt;~/.emacs.d/init.el&lt;/code&gt; if you don’t have one&lt;/li&gt;
+&lt;li&gt;In &lt;code&gt;~/.emacs.d/init.el&lt;/code&gt;, we need only to do a few things:
+&lt;ul&gt;
+&lt;li&gt;setup emacs so that it can download packages from the &lt;a href=&#34;http://melpa.milkbox.net/&#34;&gt;MELPA package server&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;install the &lt;a href=&#34;https://github.com/jwiegley/use-package&#34;&gt;&lt;code&gt;use-package&lt;/code&gt;&lt;/a&gt; package which simplify package management (all other package will be installed in &lt;code&gt;emacs-config.org&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;load the &lt;code&gt;org&lt;/code&gt; package and use the &lt;code&gt;org-babel-load-file&lt;/code&gt; function to load the code inside &lt;code&gt;~/.emacs.d/emacs-config.org&lt;/code&gt; at emacs start up.&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;In &lt;code&gt;~/.emacs.d/init.el&lt;/code&gt; (lines starting with &lt;code&gt;;;&lt;/code&gt; are comments):&lt;/p&gt;
+&lt;pre class=&#34;emacslisp&#34;&gt;&lt;code&gt;;; add MELPA package server
+(require &amp;#39;package)
+
+(add-to-list &amp;#39;package-archives 
+  &amp;#39;(&amp;quot;melpa&amp;quot; . &amp;quot;http://melpa.milkbox.net/packages/&amp;quot;))
+
+(unless package-archive-contents
+  (package-refresh-contents))
+
+(package-initialize)
+
+;; if not yet installed, install package use-package
+(unless (package-installed-p &amp;#39;use-package)
+  (package-install &amp;#39;use-package))
+
+;; load org package and our emacs-config.org file
+(require &amp;#39;org)
+(org-babel-load-file &amp;quot;~/.emacs.d/emacs-config.org&amp;quot;) &lt;/code&gt;&lt;/pre&gt;
+&lt;ol start=&#34;5&#34; style=&#34;list-style-type: decimal&#34;&gt;
+&lt;li&gt;Lastly, create file &lt;code&gt;~/.emacs.d/emacs-config.org&lt;/code&gt;, which will host the bulk of our config and the explanations. Lines starting with &lt;code&gt;#+&lt;/code&gt; are org-mode document metadata. Lines starting with &lt;code&gt;*&lt;/code&gt; are content headers (number of asterisks representing the header level). Code block are wrapped between &lt;code&gt;#+BEGIN_SRC emacs-lisp&lt;/code&gt; and &lt;code&gt;#+END_SRC&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;In &lt;code&gt;~/.emacs.d/emacs-config.org&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;orgmode&#34;&gt;&lt;code&gt;#+TITLE: Emacs configuration
+#+DESCRIPTION: An org-babel based emacs configuration
+#+LANGUAGE: en
+#+PROPERTY: results silent
+
+* Remove startup welcome screen
+The code block below toggle off the welcome startup screen.
+
+#+BEGIN_SRC emacs-lisp
+(custom-set-variables
+  &amp;#39;(inhibit-startup-screen t))
+#+END_SRC&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As you can see, we can now document the code not only with comment but with &lt;a href=&#34;http://orgmode.org/guide/Headlines.html#Headlines&#34;&gt;hierarchical headers&lt;/a&gt;, &lt;a href=&#34;http://orgmode.org/guide/Plain-lists.html#Plain-lists&#34;&gt;lists&lt;/a&gt;, &lt;a href=&#34;http://orgmode.org/guide/Tables.html#Tables&#34;&gt;tables&lt;/a&gt;, &lt;a href=&#34;http://orgmode.org/guide/External-links.html#External-links&#34;&gt;links&lt;/a&gt; and &lt;a href=&#34;http://orgmode.org/guide/&#34;&gt;all the other things&lt;/a&gt; offered by org-mode.&lt;/p&gt;
+&lt;p&gt;If you are trying to do this step by step and run emacs every time, you might notice that emacs will complain if you use &lt;code&gt;(org-babel-load-file &amp;lt;path&amp;gt;)&lt;/code&gt; in &lt;code&gt;init.el&lt;/code&gt; on a non existing or empty file. This should go away as soon as you have at least one valid code block in your &lt;code&gt;emacs-config.org&lt;/code&gt;. Above we removed the welcome screen displayed by default at emacs launch.&lt;/p&gt;
+&lt;p&gt;You will notice that on first run, emacs create a &lt;code&gt;~/.emacs.d/emacs-config.el&lt;/code&gt; file that contains only the code that we wrapped in code blocks in our &lt;code&gt;emacs-config.org&lt;/code&gt;. This file will be updated each time you change your &lt;code&gt;emacs-config.org&lt;/code&gt; file and restart emacs.&lt;/p&gt;
+&lt;p&gt;You might also notice that on first run, emacs will append some lines to our &lt;code&gt;init.el&lt;/code&gt; file. Something like:&lt;/p&gt;
+&lt;pre class=&#34;emacslisp&#34;&gt;&lt;code&gt;(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won&amp;#39;t work right.
+ &amp;#39;(inhibit-startup-screen t)
+ &amp;#39;(package-selected-packages (quote (use-package))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won&amp;#39;t work right.
+ )&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;These lines should not be touched.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;adding-vim-key-bindings&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Adding Vim key-bindings&lt;/h2&gt;
+&lt;p&gt;From now on, we can add the rest of our config in &lt;code&gt;emacs-config.org&lt;/code&gt;. We will enable vim keybindings by installing our first package via &lt;a href=&#34;https://github.com/jwiegley/use-package&#34;&gt;&lt;code&gt;use-package&lt;/code&gt;&lt;/a&gt;, called &lt;code&gt;EVIL&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Some reasons to use &lt;code&gt;use-package&lt;/code&gt; for your package management and config:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;you can wrap together in the same function the install, enabling and config of each package. This keeps things neatly organized.&lt;/li&gt;
+&lt;li&gt;the &lt;code&gt;:ensure&lt;/code&gt; keyword, when set to true (&lt;code&gt;t&lt;/code&gt;), will install the package if it’s not installed yet.&lt;/li&gt;
+&lt;li&gt;it’s easy to install/load packages depending on the operating system&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Append the following lines to &lt;code&gt;~/.emacs.d/emacs-config.org&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;orgmode&#34;&gt;&lt;code&gt;* EVIL
+** Install
+Install EVIL (if not yet installed), and enable it.
+
+#+BEGIN_SRC emacs-lisp
+(use-package evil
+  :ensure t
+  :config
+  (evil-mode 1))
+#+END_SRC&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Restart EMACS. On my machine, I often get error when I start EMACS with new packages. Closing it once and restarting a second time usually works well.&lt;/p&gt;
+&lt;div class=&#34;figure&#34;&gt;
+&lt;img src=&#34;../../img/1705091-scrsh-emacs-error.png&#34; alt=&#34;The type of error I get on first start with new package&#34; /&gt;
+&lt;p class=&#34;caption&#34;&gt;The type of error I get on first start with new package&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;After your second restart, you should be all set to start using emacs.&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

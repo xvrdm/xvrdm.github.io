@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.18.1" />
+
+
+<title>A minimal emacs setup with orgmode - Invalid Input</title>
+<meta property="og:title" content="A minimal emacs setup with orgmode - Invalid Input">
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="../../../../css/fonts.css" media="all">
+<link rel="stylesheet" href="../../../../css/main.css" media="all">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Ubuntu+Mono:400,400i,700,700i">
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="../../../../" class="nav-logo">
+    <img src="../../../../images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="../../../../about/">About</a></li>
+    
+    <li><a href="https://github.com/xvrdm">GitHub</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">2 min read</span>
+    
+
+    <h1 class="article-title">A minimal emacs setup with orgmode</h1>
+
+    
+    <span class="article-date">2017/07/29</span>
+    
+
+    <div class="article-content">
+      <div id="install-emacs" class="section level2">
+<h2>Install emacs</h2>
+</div>
+<div id="set-up-org-babel-config-file" class="section level2">
+<h2>Set up org-babel config file</h2>
+<p>Depending on how you installed emacs, you might have a <code>.emacs</code> file in you home directory. This is similar to <code>.vimrc</code> file for vim and usually contains config commands that are loaded at startup.</p>
+<p>From the <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html">doc</a>, we can see that there are other options to load your config:</p>
+<blockquote>
+<p>When Emacs is started, it normally tries to load a Lisp program from an initialization file, or init file for short. This file, if it exists, specifies how to initialize Emacs for you. Emacs looks for your init file using the filenames ~/.emacs, ~/.emacs.el, or ~/.emacs.d/init.el; you can choose to use any one of these three names (see Find Init). Here, ~/ stands for your home directory.</p>
+</blockquote>
+<p>In our case, we want to use <code>init.el</code> instead of <code>.emacs</code> and use it exclusively to load an org-babel config file (<code>emacs-config.org</code>):</p>
+<ol style="list-style-type: decimal">
+<li>Delete <code>~/.emacs</code> if you have one</li>
+<li>Create <code>~/.emacs.d/</code> if you don’t have one</li>
+<li>Create <code>~/.emacs.d/init.el</code> if you don’t have one</li>
+</ol>
+<pre class="emacslisp"><code>;; In ~/.emacs.d/init.el
+
+(require &#39;org)
+(org-babel-load-file &quot;~/.emacs.d/emacs-config.org&quot;) </code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>Create <code>~/.emacs.d/emacs-config.org</code></li>
+</ol>
+<pre class="emacslisp"><code>;; In ~/.emacs.d/emacs-config.org
+
+#+TITLE: Emacs configuration
+#+DESCRIPTION: An org-babel based emacs configuration
+#+LANGUAGE: en
+#+PROPERTY: results silent
+
+** Remove startup welcome screen
+The code block below toggle off the welcome startup screen.
+
+#+BEGIN_SRC emacs-lisp
+(custom-set-variables
+  &#39;(inhibit-startup-screen t))
+#+END_SRC</code></pre>
+<p>If you are trying to do this step by step and run emacs everytime, you might notice that emacs will complain if you use <code>(org-babel-load-file &lt;path&gt;)</code> on a non existing or empty file. This should go away as soon as you have at least one valid code block in your <code>emacs-config.org</code>.</p>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="../../../../index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="../../../../images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+
+    
+  </body>
+</html>
+

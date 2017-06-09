@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.18.1" />
+
+
+<title>Clojure for pythonista - User Input/Loop/Conditional - Invalid Input</title>
+<meta property="og:title" content="Clojure for pythonista - User Input/Loop/Conditional - Invalid Input">
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="../../../../../../css/fonts.css" media="all">
+<link rel="stylesheet" href="../../../../../../css/main.css" media="all">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Ubuntu+Mono:400,400i,700,700i">
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="../../../../../../" class="nav-logo">
+    <img src="../../../../../../images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="../../../../../../about/">About</a></li>
+    
+    <li><a href="https://github.com/xvrdm">GitHub</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">3 min read</span>
+    
+
+    <h1 class="article-title">Clojure for pythonista - User Input/Loop/Conditional</h1>
+
+    
+    <span class="article-date">2017/06/08</span>
+    
+
+    <div class="article-content">
+      <div id="foreword" class="section level2">
+<h2>Foreword</h2>
+<p>I am trying to learn clojure. This series of posts is my attempt to solve beginner exercises both in python and clojure. Exercises are inspired by the excellent Reuven Lerner’s <a href="https://practicemakespython.com/">Practice Makes Python</a> and other sources like <a href="https://learnpythonthehardway.org/">Learn python the hard way</a>. Before trying any exercises, you can read an excellent introduction to clojure : <a href="http://www.braveclojure.com/do-things/">Brave Clojure</a>.</p>
+</div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This exercise introduces the following concepts: user-input, conditional and loop.</p>
+</div>
+<div id="user-input" class="section level2">
+<h2>User input</h2>
+<div id="goal" class="section level3">
+<h3>Goal</h3>
+<p>Create a command line game where the user has to guess a number between 0 and 99. The final program should repeat the question until the user find the right number, providing a helpful “Higher!” or “Lower!” hint after each failed attempt.</p>
+</div>
+<div id="getting-random-numbers" class="section level3">
+<h3>Getting random numbers</h3>
+<p>In python, random integers can be obtained from <code>randint</code>, a function from the <code>random</code> package.</p>
+<pre class="python"><code>import random
+# Get a random number between 0 and 99
+number = random.randint(0, 100)</code></pre>
+<p>In clojure, you get random integer from the <code>rand-int</code> function (which by default start at 0 and end at the first argument)</p>
+<pre class="clojure"><code>(def -main []
+  (rand-int 100))</code></pre>
+</div>
+<div id="getting-user-input" class="section level3">
+<h3>Getting user input</h3>
+<p>In python, you can get user input with the <code>input</code> function. <code>input</code> takes a string as an argument that you can use to display a prompt to the user. To make sure that the input is converted to a integer, we wrap the <code>input</code> call in <code>int</code>.</p>
+<pre class="python"><code>guess = int(input(&quot;Enter a guess: &quot;))</code></pre>
+<p>In clojure, you can get user input with the <a href="https://clojuredocs.org/clojure.core/read-line"><code>read-line</code></a> function. The conversion to an integer is also necessary and you can use <code>Integer/parseInt</code> for that. <code>read-line</code> doesn’t have prompt feature, so we will print the prompt to the console with <a href="https://clojuredocs.org/clojure.core/read-line"><code>println</code></a>.</p>
+<pre class="clojure"><code>(defn -main []
+  (println &quot;Enter a guess:&quot;)
+  (let [guess (Integer/parseInt (read-line))]))</code></pre>
+</div>
+<div id="conditionals" class="section level3">
+<h3>Conditionals</h3>
+<p>Now that we have a random number and a number entered by the user, we need to compare them and send the response response.</p>
+<pre class="python"><code>import random
+number = random.randint(0, 100)
+guess = int(input(&quot;Enter a guess: &quot;))
+
+if number &gt; guess:
+    print(&quot;Too small!&quot;)
+elif number &lt; guess:
+    print(&quot;Too big!&quot;)
+else:
+    print(&quot;Correct!&quot;)</code></pre>
+<p>In clojure, the <a href="http://www.braveclojure.com/do-things/#if"><code>if</code></a> function seems to be designed for single comparison. It works as a simple “if/else”: <code>(if &lt;test&gt; &lt;do-if-true&gt; &lt;do-if-false&gt;)</code>. There is no such thing as <code>elif</code>. However, clojure has <a href="https://clojuredocs.org/clojure.core/cond"><code>cond</code></a> function, which is like a switch/case statement (notoriously absent in python) and allow for as many comparison as we like.</p>
+<pre class="clojure"><code>(defn -main []
+  (let [number (rand-int 100)]
+    (println &quot;Enter a guess:&quot;)
+    (let [guess (Integer/parseInt (read-line))]
+      (cond (&gt; number guess)
+              (println &quot;Too Low!&quot;)
+            (&lt; number guess)
+              (println &quot;Too Big!&quot;)
+            :else
+              (println &quot;Yeah!&quot;)))))</code></pre>
+</div>
+<div id="repeating-the-question" class="section level3">
+<h3>Repeating the question</h3>
+<p>Lastly, we need to make the program able to repeat the question when the answer is wrong.</p>
+<p>In python, never-ending loop are often implemented with <code>while True</code>, using the <code>break</code> keyword to exit on specific conditions.</p>
+<pre class="python"><code>import random
+number = random.randint(0, 100)
+
+while True:
+    guess = int(input(&quot;Enter a guess: &quot;))
+    if number &gt; guess:
+        print(&quot;Too small!&quot;)
+    elif number &lt; guess:
+        print(&quot;Too big!&quot;)
+    else:
+        print(&quot;Correct!&quot;)
+        break</code></pre>
+<p>In clojure, you can take the opposite approach. Rather than saying when to exit (<code>break</code>), we can use the <a href="http://www.braveclojure.com/do-things/#loop"><code>loop</code></a> function and tell it when to loop (<code>recur</code>):</p>
+<pre class="clojure"><code>(defn -main []
+  (let [number (rand-int 100)]
+    (loop []
+      (println &quot;Enter a guess:&quot;)
+      (let [guess (Integer/parseInt (read-line))]
+        (cond (&gt; number guess)
+                (do (println &quot;Too Low!&quot;)
+                    (recur))
+              (&lt; number guess)
+                (do (println &quot;Too Big!&quot;)
+                    (recur))
+              :else
+                (println &quot;Yeah!&quot;))))))</code></pre>
+<p>Note that we had to wrap the “actions” following each <code>cond</code>’s conditions with the <a href="http://www.braveclojure.com/do-things/#do"><code>do</code></a> function, a simple way to group multiple statements into one. Otherwise, the first call to <code>(recur)</code> (after “Too Low!”) would be interpreted as the second condition for <code>cond</code> (instead of <code>(&lt; number guess)</code>).</p>
+</div>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="../../../../../../index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="../../../../../../images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+
+    
+  </body>
+</html>
+

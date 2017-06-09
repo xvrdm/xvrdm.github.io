@@ -2,6 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>/2017/06/08/clojure-for-pythonista---user-input/loop/conditional/</loc>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/2017/05/29/a-minimal-emacs-setup-with-orgmode/</loc>
+    <lastmod>2017-05-29T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>/2017/05/08/create-swiss-cantons-cartogram-with-ggplot2/</loc>
     <lastmod>2017-05-08T00:00:00+00:00</lastmod>
   </url>
@@ -28,49 +38,67 @@
   
   <url>
     <loc>/tags/dplyr/</loc>
-    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/dt/</loc>
-    <lastmod>2017-03-31T00:00:00+00:00</lastmod>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/emacs/</loc>
+    <lastmod>2017-05-29T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/categories/emacs/</loc>
+    <lastmod>2017-05-29T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/</loc>
-    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/leaflet/</loc>
-    <lastmod>2017-03-31T00:00:00+00:00</lastmod>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/org-mode/</loc>
+    <lastmod>2017-05-29T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/post/</loc>
-    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/purrr/</loc>
-    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>/categories/r/</loc>
-    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/r/</loc>
-    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/categories/r/</loc>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -82,19 +110,19 @@
   
   <url>
     <loc>/tags/rmarkdown/</loc>
-    <lastmod>2017-04-16T00:00:00+00:00</lastmod>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/rvest/</loc>
-    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/scraping/</loc>
-    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -105,7 +133,7 @@
   
   <url>
     <loc>/tags/xml2/</loc>
-    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   

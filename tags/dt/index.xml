@@ -9,36 +9,128 @@
     <atom:link href="/tags/dt/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Clojure for pythonista - User Input/Loop/Conditional</title>
+      <link>/2017/06/08/clojure-for-pythonista---user-input/loop/conditional/</link>
+      <pubDate>Thu, 08 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/06/08/clojure-for-pythonista---user-input/loop/conditional/</guid>
+      <description>&lt;div id=&#34;foreword&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Foreword&lt;/h2&gt;
+&lt;p&gt;I am trying to learn clojure. This series of posts is my attempt to solve beginner exercises both in python and clojure. Exercises are inspired by the excellent Reuven Lerner’s &lt;a href=&#34;https://practicemakespython.com/&#34;&gt;Practice Makes Python&lt;/a&gt; and other sources like &lt;a href=&#34;https://learnpythonthehardway.org/&#34;&gt;Learn python the hard way&lt;/a&gt;. Before trying any exercises, you can read an excellent introduction to clojure : &lt;a href=&#34;http://www.braveclojure.com/do-things/&#34;&gt;Brave Clojure&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;This exercise introduces the following concepts: user-input, conditional and loop.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;user-input&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;User input&lt;/h2&gt;
+&lt;div id=&#34;goal&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Goal&lt;/h3&gt;
+&lt;p&gt;Create a command line game where the user has to guess a number between 0 and 99. The final program should repeat the question until the user find the right number, providing a helpful “Higher!” or “Lower!” hint after each failed attempt.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;getting-random-numbers&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Getting random numbers&lt;/h3&gt;
+&lt;p&gt;In python, random integers can be obtained from &lt;code&gt;randint&lt;/code&gt;, a function from the &lt;code&gt;random&lt;/code&gt; package.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;import random
+# Get a random number between 0 and 99
+number = random.randint(0, 100)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In clojure, you get random integer from the &lt;code&gt;rand-int&lt;/code&gt; function (which by default start at 0 and end at the first argument)&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;(def -main []
+  (rand-int 100))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;getting-user-input&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Getting user input&lt;/h3&gt;
+&lt;p&gt;In python, you can get user input with the &lt;code&gt;input&lt;/code&gt; function. &lt;code&gt;input&lt;/code&gt; takes a string as an argument that you can use to display a prompt to the user. To make sure that the input is converted to a integer, we wrap the &lt;code&gt;input&lt;/code&gt; call in &lt;code&gt;int&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;guess = int(input(&amp;quot;Enter a guess: &amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In clojure, you can get user input with the &lt;a href=&#34;https://clojuredocs.org/clojure.core/read-line&#34;&gt;&lt;code&gt;read-line&lt;/code&gt;&lt;/a&gt; function. The conversion to an integer is also necessary and you can use &lt;code&gt;Integer/parseInt&lt;/code&gt; for that. &lt;code&gt;read-line&lt;/code&gt; doesn’t have prompt feature, so we will print the prompt to the console with &lt;a href=&#34;https://clojuredocs.org/clojure.core/read-line&#34;&gt;&lt;code&gt;println&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;(defn -main []
+  (println &amp;quot;Enter a guess:&amp;quot;)
+  (let [guess (Integer/parseInt (read-line))]))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;conditionals&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Conditionals&lt;/h3&gt;
+&lt;p&gt;Now that we have a random number and a number entered by the user, we need to compare them and send the response response.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;import random
+number = random.randint(0, 100)
+guess = int(input(&amp;quot;Enter a guess: &amp;quot;))
+
+if number &amp;gt; guess:
+    print(&amp;quot;Too small!&amp;quot;)
+elif number &amp;lt; guess:
+    print(&amp;quot;Too big!&amp;quot;)
+else:
+    print(&amp;quot;Correct!&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In clojure, the &lt;a href=&#34;http://www.braveclojure.com/do-things/#if&#34;&gt;&lt;code&gt;if&lt;/code&gt;&lt;/a&gt; function seems to be designed for single comparison. It works as a simple “if/else”: &lt;code&gt;(if &amp;lt;test&amp;gt; &amp;lt;do-if-true&amp;gt; &amp;lt;do-if-false&amp;gt;)&lt;/code&gt;. There is no such thing as &lt;code&gt;elif&lt;/code&gt;. However, clojure has &lt;a href=&#34;https://clojuredocs.org/clojure.core/cond&#34;&gt;&lt;code&gt;cond&lt;/code&gt;&lt;/a&gt; function, which is like a switch/case statement (notoriously absent in python) and allow for as many comparison as we like.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;(defn -main []
+  (let [number (rand-int 100)]
+    (println &amp;quot;Enter a guess:&amp;quot;)
+    (let [guess (Integer/parseInt (read-line))]
+      (cond (&amp;gt; number guess)
+              (println &amp;quot;Too Low!&amp;quot;)
+            (&amp;lt; number guess)
+              (println &amp;quot;Too Big!&amp;quot;)
+            :else
+              (println &amp;quot;Yeah!&amp;quot;)))))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;repeating-the-question&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Repeating the question&lt;/h3&gt;
+&lt;p&gt;Lastly, we need to make the program able to repeat the question when the answer is wrong.&lt;/p&gt;
+&lt;p&gt;In python, never-ending loop are often implemented with &lt;code&gt;while True&lt;/code&gt;, using the &lt;code&gt;break&lt;/code&gt; keyword to exit on specific conditions.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;import random
+number = random.randint(0, 100)
+
+while True:
+    guess = int(input(&amp;quot;Enter a guess: &amp;quot;))
+    if number &amp;gt; guess:
+        print(&amp;quot;Too small!&amp;quot;)
+    elif number &amp;lt; guess:
+        print(&amp;quot;Too big!&amp;quot;)
+    else:
+        print(&amp;quot;Correct!&amp;quot;)
+        break&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In clojure, you can take the opposite approach. Rather than saying when to exit (&lt;code&gt;break&lt;/code&gt;), we can use the &lt;a href=&#34;http://www.braveclojure.com/do-things/#loop&#34;&gt;&lt;code&gt;loop&lt;/code&gt;&lt;/a&gt; function and tell it when to loop (&lt;code&gt;recur&lt;/code&gt;):&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;(defn -main []
+  (let [number (rand-int 100)]
+    (loop []
+      (println &amp;quot;Enter a guess:&amp;quot;)
+      (let [guess (Integer/parseInt (read-line))]
+        (cond (&amp;gt; number guess)
+                (do (println &amp;quot;Too Low!&amp;quot;)
+                    (recur))
+              (&amp;lt; number guess)
+                (do (println &amp;quot;Too Big!&amp;quot;)
+                    (recur))
+              :else
+                (println &amp;quot;Yeah!&amp;quot;))))))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note that we had to wrap the “actions” following each &lt;code&gt;cond&lt;/code&gt;’s conditions with the &lt;a href=&#34;http://www.braveclojure.com/do-things/#do&#34;&gt;&lt;code&gt;do&lt;/code&gt;&lt;/a&gt; function, a simple way to group multiple statements into one. Otherwise, the first call to &lt;code&gt;(recur)&lt;/code&gt; (after “Too Low!”) would be interpreted as the second condition for &lt;code&gt;cond&lt;/code&gt; (instead of &lt;code&gt;(&amp;lt; number guess)&lt;/code&gt;).&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Scrape a list of rental offers using rvest and purrr</title>
       <link>/2017/03/31/scrape-a-list-of-rental-offers-using-rvest-and-purrr/</link>
       <pubDate>Fri, 31 Mar 2017 00:00:00 +0000</pubDate>
       
       <guid>/2017/03/31/scrape-a-list-of-rental-offers-using-rvest-and-purrr/</guid>
-      <description>&lt;!-- BLOGDOWN-HEAD --&gt;
+      <description>&lt;script src=&#34;../../rmarkdown-libs/htmlwidgets/htmlwidgets.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;../../rmarkdown-libs/jquery/jquery.min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;../../rmarkdown-libs/datatables-binding/datatables.js&#34;&gt;&lt;/script&gt;
+&lt;link href=&#34;../../rmarkdown-libs/dt-core/css/jquery.dataTables.min.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;link href=&#34;../../rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;script src=&#34;../../rmarkdown-libs/dt-core/js/jquery.dataTables.min.js&#34;&gt;&lt;/script&gt;
+&lt;link href=&#34;../../rmarkdown-libs/leaflet/leaflet.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;script src=&#34;../../rmarkdown-libs/leaflet/leaflet.js&#34;&gt;&lt;/script&gt;
+&lt;link href=&#34;../../rmarkdown-libs/leafletfix/leafletfix.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;link href=&#34;../../rmarkdown-libs/leaflet-label/leaflet.label.css&#34; rel=&#34;stylesheet&#34; /&gt;
+&lt;script src=&#34;../../rmarkdown-libs/leaflet-label/leaflet.label.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;../../rmarkdown-libs/Proj4Leaflet/proj4-compressed.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;../../rmarkdown-libs/Proj4Leaflet/proj4leaflet.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;../../rmarkdown-libs/leaflet-binding/leaflet.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;../../rmarkdown-libs/leaflet-providers/leaflet-providers.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;../../rmarkdown-libs/leaflet-providers-plugin/leaflet-providers-plugin.js&#34;&gt;&lt;/script&gt;
 
-&lt;script src=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/htmlwidgets/htmlwidgets.js&#34;&gt;&lt;/script&gt;
-&lt;script src=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/jquery/jquery.min.js&#34;&gt;&lt;/script&gt;
-&lt;script src=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/datatables-binding/datatables.js&#34;&gt;&lt;/script&gt;
-&lt;link href=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/dt-core/css/jquery.dataTables.min.css&#34; rel=&#34;stylesheet&#34; /&gt;
-&lt;link href=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/dt-core/css/jquery.dataTables.extra.css&#34; rel=&#34;stylesheet&#34; /&gt;
-&lt;script src=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/dt-core/js/jquery.dataTables.min.js&#34;&gt;&lt;/script&gt;
-&lt;link href=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/leaflet/leaflet.css&#34; rel=&#34;stylesheet&#34; /&gt;
-&lt;script src=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/leaflet/leaflet.js&#34;&gt;&lt;/script&gt;
-&lt;link href=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/leafletfix/leafletfix.css&#34; rel=&#34;stylesheet&#34; /&gt;
-&lt;link href=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/leaflet-label/leaflet.label.css&#34; rel=&#34;stylesheet&#34; /&gt;
-&lt;script src=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/leaflet-label/leaflet.label.js&#34;&gt;&lt;/script&gt;
-&lt;script src=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/Proj4Leaflet/proj4-compressed.js&#34;&gt;&lt;/script&gt;
-&lt;script src=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/Proj4Leaflet/proj4leaflet.js&#34;&gt;&lt;/script&gt;
-&lt;script src=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/leaflet-binding/leaflet.js&#34;&gt;&lt;/script&gt;
-&lt;script src=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/leaflet-providers/leaflet-providers.js&#34;&gt;&lt;/script&gt;
-&lt;script src=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/leaflet-providers-plugin/leaflet-providers-plugin.js&#34;&gt;&lt;/script&gt;
-
-
-&lt;!-- /BLOGDOWN-HEAD --&gt;
-
-&lt;!-- BLOGDOWN-BODY-BEFORE --&gt;
-
-&lt;!-- /BLOGDOWN-BODY-BEFORE --&gt;
 
 &lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Introduction&lt;/h2&gt;
@@ -87,12 +179,12 @@ listing_html&lt;/code&gt;&lt;/pre&gt;
   rvest::html_nodes(&amp;quot;#offers .offer&amp;quot;)
 head(listing_offers)&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## {xml_nodeset (6)}
-## [1] &amp;lt;div class=&amp;quot;offer cat1 cat2 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...
-## [2] &amp;lt;div class=&amp;quot;offer cat1 cat2 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...
-## [3] &amp;lt;div class=&amp;quot;offer cat1 cat2 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...
-## [4] &amp;lt;div class=&amp;quot;offer cat2 cat3 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...
-## [5] &amp;lt;div class=&amp;quot;offer cat2 cat3 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...
-## [6] &amp;lt;div class=&amp;quot;offer cat3 1&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-for-re ...&lt;/code&gt;&lt;/pre&gt;
+## [1] &amp;lt;div class=&amp;quot;offer cat1 cat2 3&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...
+## [2] &amp;lt;div class=&amp;quot;offer cat2 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-for-re ...
+## [3] &amp;lt;div class=&amp;quot;offer cat2 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-for-re ...
+## [4] &amp;lt;div class=&amp;quot;offer cat3 cat4 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...
+## [5] &amp;lt;div class=&amp;quot;offer cat3 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-for-re ...
+## [6] &amp;lt;div class=&amp;quot;offer cat1 cat2 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 &lt;div id=&#34;parsing-the-offers&#34; class=&#34;section level3&#34;&gt;
 &lt;h3&gt;Parsing the offers&lt;/h3&gt;
@@ -156,8 +248,8 @@ DT::datatable(
   options = list(pageLength = 5, dom = &amp;#39;tpi&amp;#39;),
   rownames = FALSE,
   caption = &amp;quot;Table 1 : Offers scraped using the field centric way&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
-&lt;div id=&#34;htmlwidget-5981f4de466af83cfa6f&#34; style=&#34;width:100%;height:auto;&#34; class=&#34;datatables html-widget&#34;&gt;&lt;/div&gt;
-&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-5981f4de466af83cfa6f&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 1 : Offers scraped using the field centric way\u003c/caption&gt;&#34;,&#34;data&#34;:[[&#34;0371.41.0030&#34;,&#34;0042.43.0010&#34;,&#34;0042.44.0050&#34;,&#34;0645.40.0300&#34;,&#34;0645.44.0430&#34;,&#34;0110.41.0010&#34;,&#34;2120.43.0040&#34;,&#34;0399.45.0020&#34;,&#34;2013.45.0030&#34;,&#34;0573.44.0450&#34;,&#34;2322.41.0030&#34;,&#34;0649.40.0010&#34;,&#34;0009.41.0020&#34;,&#34;0626.41.0010&#34;,&#34;2190.41.0010&#34;,&#34;0575.47.0030&#34;,&#34;0627.42.0020&#34;,&#34;2023.42.0030&#34;,&#34;0632.43.0070&#34;,&#34;2306.40.0030&#34;,&#34;0553.43.0010&#34;,&#34;0572.43.0330&#34;,&#34;0108.43.0020&#34;,&#34;2579.41.0020&#34;,&#34;0256.43.0010&#34;,&#34;0475.42.0010&#34;,&#34;0116.46.0020&#34;,&#34;0192.47.0030&#34;,&#34;0253.41.0040&#34;,&#34;7450.41.0010&#34;,&#34;2469.40.0020&#34;,&#34;7450.42.0020&#34;,&#34;2140.42.0020&#34;,&#34;0022.40.0010&#34;,&#34;0022.43.0010&#34;,&#34;0082.44.0030&#34;,&#34;2581.43.0010&#34;,&#34;0033.48.0020&#34;,&#34;0695.42.0010&#34;,&#34;0615.45.0010&#34;,&#34;7450.43.0010&#34;,&#34;0294.43.0020&#34;,&#34;2027.46.0060&#34;],[1.5,1.5,1.5,2.5,2.5,3,1.5,1.5,2,1.5,2,2.5,2,3,1,3.5,3,2.5,4,3.5,4,4,4.5,4,5,4.5,5.5,5,5.5,4,3,5,6,4.5,4,3,5.5,6,6,6,6,7.5,6],[&#34;Rue des Epinettes 17&#34;,&#34;Route de Florissant 55&#34;,&#34;Route de Florissant 55&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Genève 123 A&#34;,&#34;Rue Tronchin 12&#34;,&#34;Rue de la Tour-de-Boël 2&#34;,&#34;Chemin Taverney 15&#34;,&#34;Rue Liotard 8&#34;,&#34;Chemin du Pré-Cartelier 4&#34;,&#34;Rue des Deux-Ponts 20&#34;,&#34;Rue du Vieux-Billard 4&#34;,&#34;Avenue de la Jonction 4&#34;,&#34;Grand-Rue 10&#34;,&#34;Grand-Montfleury 30&#34;,&#34;Rue des Peupliers 16&#34;,&#34;Chemin Taverney 16&#34;,&#34;Route de Mon-IdÃ©e 63&#34;,&#34;Rue de ChÃªne-Bougeries 10&#34;,&#34;Chemin des Champs-Gottreux 10&#34;,&#34;Rue Liotard 6&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Chemin Charles-Poluzzi 25&#34;,&#34;Grand-Montfleury 42&#34;,&#34;Carrefour de Villereuse 4&#34;,&#34;Chemin des Palettes 27&#34;,&#34;Rue Jean-Violette 1&#34;,&#34;Grand-Montfleury 52&#34;,&#34;Avenue de la Grenade 28&#34;,&#34;Rue Emile-Yung 6&#34;,&#34;Avenue de la Grenade 28&#34;,&#34;Chemin De-Sales 13 D&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Avenue de la Grenade 28&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;],[46.1896315,46.1939272,46.1939272,46.2084185,46.2084185,46.1929323,46.2097937,46.2026089,46.2298375,46.2097108,46.2183365,46.2009419,46.2003774,46.2011516,46.20209,null,46.1890959,46.2292727,46.2078181,46.1968155,46.1740593,46.2096584,46.1750094,46.179063,46.2932679,46.2003182,46.1756607,46.1941321,46.2923369,46.2052433,46.195653,46.2052433,46.2143532,46.2167452,46.2167452,46.1976599,46.1792898,46.2024683,46.2043919,46.2001689,46.2052433,46.1818628,46.2061894],[6.136595,6.1613533,6.1613533,6.1300667,6.1300667,6.2037003,6.1342851,6.1447585,6.1194662,6.1341186,6.1326113,6.1295739,6.1392531,6.1298122,6.1451254,null,6.1455591,6.1188706,6.2174091,6.1895033,6.1158323,6.1342495,6.1193707,6.1477921,6.1651556,6.1592597,6.1196906,6.14382,6.1647751,6.1617633,6.1493547,6.1617633,6.0882319,6.1316818,6.1316818,6.1462625,6.1479551,6.1840869,6.1308513,6.1723494,6.1617633,6.1401097,6.1306914],[950,1050,1050,1050,1072,1100,1150,1200,1290,1350,1355,1400,1425,1480,1500,1525,1550,1550,1620,1850,1930,2000,2100,2200,2500,2590,2600,2650,2700,2700,2800,2800,2980,3030,3117,3200,3500,4200,4200,4500,4500,4900,5050],[90,110,110,120,120,125,105,100,100,135,110,100,105,122,100,135,135,100,120,160,115,170,170,150,185,200,195,200,200,null,null,null,270,200,220,150,200,280,265,350,null,350,350]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;id\u003c/th&gt;\n      &lt;th&gt;rooms\u003c/th&gt;\n      &lt;th&gt;address\u003c/th&gt;\n      &lt;th&gt;latitude\u003c/th&gt;\n      &lt;th&gt;longitude\u003c/th&gt;\n      &lt;th&gt;rent\u003c/th&gt;\n      &lt;th&gt;charges\u003c/th&gt;\n    \u003c/tr&gt;\n  \u003c/thead&gt;\n\u003c/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:[1,3,4,5,6]}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;div id=&#34;htmlwidget-1&#34; style=&#34;width:100%;height:auto;&#34; class=&#34;datatables html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-1&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 1 : Offers scraped using the field centric way&lt;\/caption&gt;&#34;,&#34;data&#34;:[[&#34;0577.45.0530&#34;,&#34;2454.44.0030&#34;,&#34;2040.41.0020&#34;,&#34;2066.41.0010&#34;,&#34;0510.45.0030&#34;,&#34;2457.41.0020&#34;,&#34;2018.48.0020&#34;,&#34;2020.47.0020&#34;,&#34;2190.44.0030&#34;,&#34;0577.43.0340&#34;,&#34;0090.45.0040&#34;,&#34;0329.49.0020&#34;,&#34;0108.43.0020&#34;,&#34;0022.42.0010&#34;,&#34;0033.45.0020&#34;,&#34;0138.40.0020&#34;,&#34;0690.41.0020&#34;,&#34;2062.43.0050&#34;,&#34;0571.43.0040&#34;,&#34;2469.40.0020&#34;,&#34;0022.40.0010&#34;,&#34;0022.43.0010&#34;,&#34;0082.44.0030&#34;,&#34;0569.42.0210&#34;,&#34;2581.43.0010&#34;,&#34;0695.42.0010&#34;,&#34;0615.45.0010&#34;,&#34;0294.43.0020&#34;,&#34;2027.46.0060&#34;,&#34;0579.51.0010&#34;],[1.5,2,2,3.5,3,1.5,2.5,2.5,1,3.5,3.5,5,4.5,3.5,4.5,3.5,4.5,4,4.5,3,4.5,4,3,5.5,5.5,6,6,7.5,6,6.5],[&#34;Chemin de Maisonneuve 12 B&#34;,&#34;Rue du Levant 3&#34;,&#34;Rue Henri-ChristinÃ© 6&#34;,&#34;Rue du BelvÃ©dÃ¨re 9&#34;,&#34;Rue Chandieu 1&#34;,&#34;Rue du Vidollet 11&#34;,&#34;Chemin Taverney 6&#34;,&#34;Chemin Taverney 10&#34;,&#34;Grand-Rue 10&#34;,&#34;Chemin de Maisonneuve 12 B&#34;,&#34;Rue de la DÃ´le 12&#34;,&#34;Rue des Bossons 80&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue Michel-Chauvet 4&#34;,&#34;Chemin de Castelver 10&#34;,&#34;Rue Lamartine 24 B&#34;,&#34;Rue de la Faucille 14&#34;,&#34;Rue Emile-Yung 6&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Rue du Fort-Barreau 13&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;,&#34;Chemin de Beau-Soleil 5&#34;],[46.2122871,46.2117575,46.1945565,46.2049981,46.2158774,46.2159927,46.2299972,46.2297057,46.20209,46.2122871,46.2076048,46.1882995,46.1750094,46.2167452,46.2024683,46.1982716,46.1655653,46.2111247,46.2112803,46.195653,46.2167452,46.2167452,46.1976599,46.2113528,46.1792898,46.2043919,46.2001689,46.1818628,46.2061894,46.1879451],[6.1143063,6.1477936,6.1424891,6.1311477,6.1344373,6.1381931,6.1177381,6.118199,6.1451254,6.1143063,6.13172,6.1103174,6.1193707,6.1316818,6.1840869,6.1565411,6.1866597,6.1295749,6.1399257,6.1493547,6.1316818,6.1316818,6.1462625,6.1407533,6.1479551,6.1308513,6.1723494,6.1401097,6.1306914,6.1598356],[842,950,1250,1350,1500,1500,1580,1580,1600,1670,1750,1950,2100,2160,2200,2300,2360,2400,2800,2800,3030,3117,3200,3350,3500,4200,4500,4900,5050,6500],[80,100,85,null,120,70,90,90,100,165,145,200,170,160,205,155,140,180,170,null,200,220,150,197,200,265,350,350,350,385]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;id&lt;\/th&gt;\n      &lt;th&gt;rooms&lt;\/th&gt;\n      &lt;th&gt;address&lt;\/th&gt;\n      &lt;th&gt;latitude&lt;\/th&gt;\n      &lt;th&gt;longitude&lt;\/th&gt;\n      &lt;th&gt;rent&lt;\/th&gt;\n      &lt;th&gt;charges&lt;\/th&gt;\n    &lt;\/tr&gt;\n  &lt;\/thead&gt;\n&lt;\/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:[1,3,4,5,6]}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
 &lt;/div&gt;
 &lt;div id=&#34;parsing-with-the-offer-centric-way&#34; class=&#34;section level4&#34;&gt;
 &lt;h4&gt;Parsing with the offer centric way&lt;/h4&gt;
@@ -221,8 +313,8 @@ DT::datatable(
   options = list(pageLength = 5, dom = &amp;#39;tpi&amp;#39;),
   rownames = FALSE,
   caption = &amp;quot;Table 2 : Offers scraped using the offer centric way&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
-&lt;div id=&#34;htmlwidget-61518a7ffc8c565fe813&#34; style=&#34;width:100%;height:auto;&#34; class=&#34;datatables html-widget&#34;&gt;&lt;/div&gt;
-&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-61518a7ffc8c565fe813&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 2 : Offers scraped using the offer centric way\u003c/caption&gt;&#34;,&#34;data&#34;:[[&#34;0371.41.0030&#34;,&#34;0042.43.0010&#34;,&#34;0042.44.0050&#34;,&#34;0645.40.0300&#34;,&#34;0645.44.0430&#34;,&#34;0110.41.0010&#34;,&#34;2120.43.0040&#34;,&#34;0399.45.0020&#34;,&#34;2013.45.0030&#34;,&#34;0573.44.0450&#34;,&#34;2322.41.0030&#34;,&#34;0649.40.0010&#34;,&#34;0009.41.0020&#34;,&#34;0626.41.0010&#34;,&#34;2190.41.0010&#34;,&#34;0627.42.0020&#34;,&#34;2023.42.0030&#34;,&#34;0632.43.0070&#34;,&#34;2306.40.0030&#34;,&#34;0553.43.0010&#34;,&#34;0572.43.0330&#34;,&#34;0108.43.0020&#34;,&#34;2579.41.0020&#34;,&#34;0256.43.0010&#34;,&#34;0475.42.0010&#34;,&#34;0116.46.0020&#34;,&#34;0192.47.0030&#34;,&#34;0253.41.0040&#34;,&#34;2140.42.0020&#34;,&#34;0022.40.0010&#34;,&#34;0022.43.0010&#34;,&#34;0082.44.0030&#34;,&#34;2581.43.0010&#34;,&#34;0033.48.0020&#34;,&#34;0695.42.0010&#34;,&#34;0615.45.0010&#34;,&#34;0294.43.0020&#34;,&#34;2027.46.0060&#34;],[&#34;Rue des Epinettes 17&#34;,&#34;Route de Florissant 55&#34;,&#34;Route de Florissant 55&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Genève 123 A&#34;,&#34;Rue Tronchin 12&#34;,&#34;Rue de la Tour-de-Boël 2&#34;,&#34;Chemin Taverney 15&#34;,&#34;Rue Liotard 8&#34;,&#34;Chemin du Pré-Cartelier 4&#34;,&#34;Rue des Deux-Ponts 20&#34;,&#34;Rue du Vieux-Billard 4&#34;,&#34;Avenue de la Jonction 4&#34;,&#34;Grand-Rue 10&#34;,&#34;Rue des Peupliers 16&#34;,&#34;Chemin Taverney 16&#34;,&#34;Route de Mon-IdÃ©e 63&#34;,&#34;Rue de ChÃªne-Bougeries 10&#34;,&#34;Chemin des Champs-Gottreux 10&#34;,&#34;Rue Liotard 6&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Chemin Charles-Poluzzi 25&#34;,&#34;Grand-Montfleury 42&#34;,&#34;Carrefour de Villereuse 4&#34;,&#34;Chemin des Palettes 27&#34;,&#34;Rue Jean-Violette 1&#34;,&#34;Grand-Montfleury 52&#34;,&#34;Chemin De-Sales 13 D&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;],[1.5,1.5,1.5,2.5,2.5,3,1.5,1.5,2,1.5,2,2.5,2,3,1,3,2.5,4,3.5,4,4,4.5,4,5,4.5,5.5,5,5.5,6,4.5,4,3,5.5,6,6,6,7.5,6],[46.1896315,46.1939272,46.1939272,46.2084185,46.2084185,46.1929323,46.2097937,46.2026089,46.2298375,46.2097108,46.2183365,46.2009419,46.2003774,46.2011516,46.20209,46.1890959,46.2292727,46.2078181,46.1968155,46.1740593,46.2096584,46.1750094,46.179063,46.2932679,46.2003182,46.1756607,46.1941321,46.2923369,46.2143532,46.2167452,46.2167452,46.1976599,46.1792898,46.2024683,46.2043919,46.2001689,46.1818628,46.2061894],[6.136595,6.1613533,6.1613533,6.1300667,6.1300667,6.2037003,6.1342851,6.1447585,6.1194662,6.1341186,6.1326113,6.1295739,6.1392531,6.1298122,6.1451254,6.1455591,6.1188706,6.2174091,6.1895033,6.1158323,6.1342495,6.1193707,6.1477921,6.1651556,6.1592597,6.1196906,6.14382,6.1647751,6.0882319,6.1316818,6.1316818,6.1462625,6.1479551,6.1840869,6.1308513,6.1723494,6.1401097,6.1306914],[950,1050,1050,1050,1072,1100,1150,1200,1290,1350,1355,1400,1425,1480,1500,1550,1550,1620,1850,1930,2000,2100,2200,2500,2590,2600,2650,2700,2980,3030,3117,3200,3500,4200,4200,4500,4900,5050],[90,110,110,120,120,125,105,100,100,135,110,100,105,122,100,135,100,120,160,115,170,170,150,185,200,195,200,200,270,200,220,150,200,280,265,350,350,350]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;id\u003c/th&gt;\n      &lt;th&gt;address\u003c/th&gt;\n      &lt;th&gt;room\u003c/th&gt;\n      &lt;th&gt;latitude\u003c/th&gt;\n      &lt;th&gt;longitude\u003c/th&gt;\n      &lt;th&gt;rent\u003c/th&gt;\n      &lt;th&gt;charges\u003c/th&gt;\n    \u003c/tr&gt;\n  \u003c/thead&gt;\n\u003c/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:[2,3,4,5,6]}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;div id=&#34;htmlwidget-2&#34; style=&#34;width:100%;height:auto;&#34; class=&#34;datatables html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-2&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 2 : Offers scraped using the offer centric way&lt;\/caption&gt;&#34;,&#34;data&#34;:[[&#34;0577.45.0530&#34;,&#34;2454.44.0030&#34;,&#34;2040.41.0020&#34;,&#34;0510.45.0030&#34;,&#34;2457.41.0020&#34;,&#34;2018.48.0020&#34;,&#34;2020.47.0020&#34;,&#34;2190.44.0030&#34;,&#34;0577.43.0340&#34;,&#34;0090.45.0040&#34;,&#34;0329.49.0020&#34;,&#34;0108.43.0020&#34;,&#34;0022.42.0010&#34;,&#34;0033.45.0020&#34;,&#34;0138.40.0020&#34;,&#34;0690.41.0020&#34;,&#34;2062.43.0050&#34;,&#34;0571.43.0040&#34;,&#34;0022.40.0010&#34;,&#34;0022.43.0010&#34;,&#34;0082.44.0030&#34;,&#34;0569.42.0210&#34;,&#34;2581.43.0010&#34;,&#34;0695.42.0010&#34;,&#34;0615.45.0010&#34;,&#34;0294.43.0020&#34;,&#34;2027.46.0060&#34;,&#34;0579.51.0010&#34;],[&#34;Chemin de Maisonneuve 12 B&#34;,&#34;Rue du Levant 3&#34;,&#34;Rue Henri-ChristinÃ© 6&#34;,&#34;Rue Chandieu 1&#34;,&#34;Rue du Vidollet 11&#34;,&#34;Chemin Taverney 6&#34;,&#34;Chemin Taverney 10&#34;,&#34;Grand-Rue 10&#34;,&#34;Chemin de Maisonneuve 12 B&#34;,&#34;Rue de la DÃ´le 12&#34;,&#34;Rue des Bossons 80&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue Michel-Chauvet 4&#34;,&#34;Chemin de Castelver 10&#34;,&#34;Rue Lamartine 24 B&#34;,&#34;Rue de la Faucille 14&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Rue du Fort-Barreau 13&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;,&#34;Chemin de Beau-Soleil 5&#34;],[1.5,2,2,3,1.5,2.5,2.5,1,3.5,3.5,5,4.5,3.5,4.5,3.5,4.5,4,4.5,4.5,4,3,5.5,5.5,6,6,7.5,6,6.5],[46.2122871,46.2117575,46.1945565,46.2158774,46.2159927,46.2299972,46.2297057,46.20209,46.2122871,46.2076048,46.1882995,46.1750094,46.2167452,46.2024683,46.1982716,46.1655653,46.2111247,46.2112803,46.2167452,46.2167452,46.1976599,46.2113528,46.1792898,46.2043919,46.2001689,46.1818628,46.2061894,46.1879451],[6.1143063,6.1477936,6.1424891,6.1344373,6.1381931,6.1177381,6.118199,6.1451254,6.1143063,6.13172,6.1103174,6.1193707,6.1316818,6.1840869,6.1565411,6.1866597,6.1295749,6.1399257,6.1316818,6.1316818,6.1462625,6.1407533,6.1479551,6.1308513,6.1723494,6.1401097,6.1306914,6.1598356],[842,950,1250,1500,1500,1580,1580,1600,1670,1750,1950,2100,2160,2200,2300,2360,2400,2800,3030,3117,3200,3350,3500,4200,4500,4900,5050,6500],[80,100,85,120,70,90,90,100,165,145,200,170,160,205,155,140,180,170,200,220,150,197,200,265,350,350,350,385]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;id&lt;\/th&gt;\n      &lt;th&gt;address&lt;\/th&gt;\n      &lt;th&gt;room&lt;\/th&gt;\n      &lt;th&gt;latitude&lt;\/th&gt;\n      &lt;th&gt;longitude&lt;\/th&gt;\n      &lt;th&gt;rent&lt;\/th&gt;\n      &lt;th&gt;charges&lt;\/th&gt;\n    &lt;\/tr&gt;\n  &lt;\/thead&gt;\n&lt;\/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:[2,3,4,5,6]}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
@@ -243,7 +335,7 @@ offers %&amp;gt;% ggplot(aes(x=rent, y=charges)) +
   labs(title=stringr::str_to_title(&amp;quot;Do charges go up with rent?&amp;quot;),
        subtitle=&amp;quot;There seems to be a positive linear relationship between rent and charges.&amp;quot;) +
   theme_ipsum_rc()&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;&lt;img src=&#34;#####content/post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/figure-html/unnamed-chunk-9-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;../../post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/figure-html/unnamed-chunk-9-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;div id=&#34;seeing-the-results-on-a-map&#34; class=&#34;section level3&#34;&gt;
 &lt;h3&gt;Seeing the results on a map&lt;/h3&gt;
@@ -256,8 +348,8 @@ m &amp;lt;- leaflet(offers) %&amp;gt;%
              lat=~latitude,
              popup=offers$address)
 m&lt;/code&gt;&lt;/pre&gt;
-&lt;div id=&#34;htmlwidget-32f0e6aedfc1e24d3e1c&#34; style=&#34;width:672px;height:480px;&#34; class=&#34;leaflet html-widget&#34;&gt;&lt;/div&gt;
-&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-32f0e6aedfc1e24d3e1c&#34;&gt;{&#34;x&#34;:{&#34;options&#34;:{&#34;crs&#34;:{&#34;crsClass&#34;:&#34;L.CRS.EPSG3857&#34;,&#34;code&#34;:null,&#34;proj4def&#34;:null,&#34;projectedBounds&#34;:null,&#34;options&#34;:{}}},&#34;calls&#34;:[{&#34;method&#34;:&#34;addProviderTiles&#34;,&#34;args&#34;:[&#34;CartoDB.Positron&#34;,null,null,{&#34;errorTileUrl&#34;:&#34;&#34;,&#34;noWrap&#34;:false,&#34;zIndex&#34;:null,&#34;unloadInvisibleTiles&#34;:null,&#34;updateWhenIdle&#34;:null,&#34;detectRetina&#34;:false,&#34;reuseTiles&#34;:false}]},{&#34;method&#34;:&#34;addMarkers&#34;,&#34;args&#34;:[[46.1896315,46.1939272,46.1939272,46.2084185,46.2084185,46.1929323,46.2097937,46.2026089,46.2298375,46.2097108,46.2183365,46.2009419,46.2003774,46.2011516,46.20209,46.1890959,46.2292727,46.2078181,46.1968155,46.1740593,46.2096584,46.1750094,46.179063,46.2932679,46.2003182,46.1756607,46.1941321,46.2923369,46.2143532,46.2167452,46.2167452,46.1976599,46.1792898,46.2024683,46.2043919,46.2001689,46.1818628,46.2061894],[6.136595,6.1613533,6.1613533,6.1300667,6.1300667,6.2037003,6.1342851,6.1447585,6.1194662,6.1341186,6.1326113,6.1295739,6.1392531,6.1298122,6.1451254,6.1455591,6.1188706,6.2174091,6.1895033,6.1158323,6.1342495,6.1193707,6.1477921,6.1651556,6.1592597,6.1196906,6.14382,6.1647751,6.0882319,6.1316818,6.1316818,6.1462625,6.1479551,6.1840869,6.1308513,6.1723494,6.1401097,6.1306914],null,null,null,{&#34;clickable&#34;:true,&#34;draggable&#34;:false,&#34;keyboard&#34;:true,&#34;title&#34;:&#34;&#34;,&#34;alt&#34;:&#34;&#34;,&#34;zIndexOffset&#34;:0,&#34;opacity&#34;:1,&#34;riseOnHover&#34;:false,&#34;riseOffset&#34;:250},[&#34;Rue des Epinettes 17&#34;,&#34;Route de Florissant 55&#34;,&#34;Route de Florissant 55&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Lyon 63 bis&#34;,&#34;Rue de Genève 123 A&#34;,&#34;Rue Tronchin 12&#34;,&#34;Rue de la Tour-de-Boël 2&#34;,&#34;Chemin Taverney 15&#34;,&#34;Rue Liotard 8&#34;,&#34;Chemin du Pré-Cartelier 4&#34;,&#34;Rue des Deux-Ponts 20&#34;,&#34;Rue du Vieux-Billard 4&#34;,&#34;Avenue de la Jonction 4&#34;,&#34;Grand-Rue 10&#34;,&#34;Rue des Peupliers 16&#34;,&#34;Chemin Taverney 16&#34;,&#34;Route de Mon-IdÃ©e 63&#34;,&#34;Rue de ChÃªne-Bougeries 10&#34;,&#34;Chemin des Champs-Gottreux 10&#34;,&#34;Rue Liotard 6&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Chemin Charles-Poluzzi 25&#34;,&#34;Grand-Montfleury 42&#34;,&#34;Carrefour de Villereuse 4&#34;,&#34;Chemin des Palettes 27&#34;,&#34;Rue Jean-Violette 1&#34;,&#34;Grand-Montfleury 52&#34;,&#34;Chemin De-Sales 13 D&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;],null,null,null,null,null,null]}],&#34;limits&#34;:{&#34;lat&#34;:[46.1740593,46.2932679],&#34;lng&#34;:[6.0882319,6.2174091]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;div id=&#34;htmlwidget-3&#34; style=&#34;width:672px;height:480px;&#34; class=&#34;leaflet html-widget&#34;&gt;&lt;/div&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-3&#34;&gt;{&#34;x&#34;:{&#34;options&#34;:{&#34;crs&#34;:{&#34;crsClass&#34;:&#34;L.CRS.EPSG3857&#34;,&#34;code&#34;:null,&#34;proj4def&#34;:null,&#34;projectedBounds&#34;:null,&#34;options&#34;:{}}},&#34;calls&#34;:[{&#34;method&#34;:&#34;addProviderTiles&#34;,&#34;args&#34;:[&#34;CartoDB.Positron&#34;,null,null,{&#34;errorTileUrl&#34;:&#34;&#34;,&#34;noWrap&#34;:false,&#34;zIndex&#34;:null,&#34;unloadInvisibleTiles&#34;:null,&#34;updateWhenIdle&#34;:null,&#34;detectRetina&#34;:false,&#34;reuseTiles&#34;:false}]},{&#34;method&#34;:&#34;addMarkers&#34;,&#34;args&#34;:[[46.2122871,46.2117575,46.1945565,46.2158774,46.2159927,46.2299972,46.2297057,46.20209,46.2122871,46.2076048,46.1882995,46.1750094,46.2167452,46.2024683,46.1982716,46.1655653,46.2111247,46.2112803,46.2167452,46.2167452,46.1976599,46.2113528,46.1792898,46.2043919,46.2001689,46.1818628,46.2061894,46.1879451],[6.1143063,6.1477936,6.1424891,6.1344373,6.1381931,6.1177381,6.118199,6.1451254,6.1143063,6.13172,6.1103174,6.1193707,6.1316818,6.1840869,6.1565411,6.1866597,6.1295749,6.1399257,6.1316818,6.1316818,6.1462625,6.1407533,6.1479551,6.1308513,6.1723494,6.1401097,6.1306914,6.1598356],null,null,null,{&#34;clickable&#34;:true,&#34;draggable&#34;:false,&#34;keyboard&#34;:true,&#34;title&#34;:&#34;&#34;,&#34;alt&#34;:&#34;&#34;,&#34;zIndexOffset&#34;:0,&#34;opacity&#34;:1,&#34;riseOnHover&#34;:false,&#34;riseOffset&#34;:250},[&#34;Chemin de Maisonneuve 12 B&#34;,&#34;Rue du Levant 3&#34;,&#34;Rue Henri-ChristinÃ© 6&#34;,&#34;Rue Chandieu 1&#34;,&#34;Rue du Vidollet 11&#34;,&#34;Chemin Taverney 6&#34;,&#34;Chemin Taverney 10&#34;,&#34;Grand-Rue 10&#34;,&#34;Chemin de Maisonneuve 12 B&#34;,&#34;Rue de la DÃ´le 12&#34;,&#34;Rue des Bossons 80&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue Michel-Chauvet 4&#34;,&#34;Chemin de Castelver 10&#34;,&#34;Rue Lamartine 24 B&#34;,&#34;Rue de la Faucille 14&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Rue du Fort-Barreau 13&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;,&#34;Chemin de Beau-Soleil 5&#34;],null,null,null,null,null,null]}],&#34;limits&#34;:{&#34;lat&#34;:[46.1655653,46.2299972],&#34;lng&#34;:[6.1103174,6.1866597]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div id=&#34;ressources&#34; class=&#34;section level2&#34;&gt;
