@@ -1,0 +1,728 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Python on Invalid Input</title>
+    <link>/tags/python/index.xml</link>
+    <description>Recent content in Python on Invalid Input</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <atom:link href="/tags/python/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Testing Flask SQLAlchemy database with pytest</title>
+      <link>/2017/07/03/testing-flask-sqlalchemy-database-with-pytest/</link>
+      <pubDate>Mon, 03 Jul 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/07/03/testing-flask-sqlalchemy-database-with-pytest/</guid>
+      <description>&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;http://testdriven.io/part-one-test-setup/&#34;&gt;Early in the tutorial&lt;/a&gt;, the author explains how to set up your app to use &lt;a href=&#34;https://docs.python.org/3/library/unittest.html&#34;&gt;&lt;code&gt;unittest&lt;/code&gt;&lt;/a&gt; and the &lt;a href=&#34;https://github.com/jarus/flask-testing&#34;&gt;&lt;code&gt;Flask-Testing&lt;/code&gt;&lt;/a&gt; extension for its test framework. Since I wanted to use &lt;a href=&#34;https://docs.pytest.org/en/latest/&#34;&gt;&lt;code&gt;pytest&lt;/code&gt;&lt;/a&gt;, this was a good opportunity to explore the test setup a bit more in depth.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;running-pytest-from-a-script&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Running pytest from a script&lt;/h2&gt;
+&lt;p&gt;Firstly, add &lt;code&gt;pytest&lt;/code&gt; to your &lt;code&gt;requirements.txt&lt;/code&gt; and place a dummy test in the &lt;code&gt;project/tests&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;def test_dummy():
+    assert True&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Secondly, add a &lt;code&gt;manager.command&lt;/code&gt; to &lt;code&gt;manage.py&lt;/code&gt; that run the pytest tests.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# manage.py
+import pytest
+@manager.command
+def test():
+    &amp;quot;&amp;quot;&amp;quot;Runs the tests.&amp;quot;&amp;quot;&amp;quot;
+    pytest.main([&amp;quot;-s&amp;quot;, &amp;quot;project/tests&amp;quot;])&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Some notes: - To find info on calling pytest directly from python code, go &lt;a href=&#34;https://docs.pytest.org/en/latest/usage.html#calling-pytest-from-python-code&#34;&gt;here&lt;/a&gt; - I first tried to just run &lt;code&gt;pytest.main()&lt;/code&gt; and ended up with some “File not found” error. You need to provide an empty list &lt;code&gt;[]&lt;/code&gt; at the very least. The error is discussed more in depth &lt;a href=&#34;https://github.com/pytest-dev/pytest/issues/1110&#34;&gt;here&lt;/a&gt;. - Running &lt;code&gt;pytest.main([])&lt;/code&gt; with an empty list will look for test everywhere in your project. If you have placed the &lt;code&gt;env&lt;/code&gt; dir in &lt;code&gt;/project&lt;/code&gt;, with all the sources of your virtual environment packages, you might find tons of tests that you did not want to touch. Therefore, it’s better to target specifically the &lt;code&gt;project/tests&lt;/code&gt; dir with the last argument &lt;code&gt;project/tests&lt;/code&gt;. - Adding &lt;code&gt;-s&lt;/code&gt; to the pytest command lets pytest print to the console any print statements that you use in your tests, not just the ones from failing tests.&lt;/p&gt;
+&lt;p&gt;We can now run the test on the running containers with:&lt;/p&gt;
+&lt;pre class=&#34;bash&#34;&gt;&lt;code&gt;$ docker-compose run users-service python manage.py test 
+
+== test session starts ==
+platform linux -- Python 3.6.1, pytest-3.1.2, py-1.4.34, pluggy-0.4.0
+rootdir: /usr/src/app, inifile:
+collected 1 items 
+
+project/tests/test_ping.py .
+
+== 1 passed in 0.01 seconds ==&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;creating-an-app-fixture&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Creating an app fixture&lt;/h2&gt;
+&lt;p&gt;In the tutorial, the author creates the class &lt;code&gt;BaseTestCase&lt;/code&gt; in &lt;code&gt;project/tests/base.py&lt;/code&gt;, which imports the &lt;code&gt;app&lt;/code&gt; from &lt;code&gt;project&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# http://testdriven.io/part-one-test-setup/
+# project/tests/base.py 
+[...]
+from project import app, db
+
+
+class BaseTestCase(TestCase):
+    def create_app(self):
+        app.config.from_object(&amp;#39;project.config.TestingConfig&amp;#39;)
+        return app
+[...]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This &lt;code&gt;app&lt;/code&gt; instance can then be used in our different tests, without needing to reimport the app for each test. At the beginning of its &lt;code&gt;project/tests/test_users.py&lt;/code&gt;, you can see that the class &lt;code&gt;TestUserService&lt;/code&gt; inherits from &lt;code&gt;BaseTestCase&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# http://testdriven.io/part-one-test-setup/
+# project/tests/test_users.py 
+[...]
+from project.tests.base import BaseTestCase
+
+
+class TestUserService(BaseTestCase):
+[...]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Reusable objects for tests are called fixtures. In &lt;code&gt;unittest&lt;/code&gt;, fixtures are defined as classes with two special functions &lt;code&gt;setUp&lt;/code&gt; and &lt;code&gt;tearDown&lt;/code&gt;, that are &lt;a href=&#34;https://docs.python.org/3/library/unittest.html#organizing-test-code&#34;&gt;executed before/after each test&lt;/a&gt;. &lt;a href=&#34;https://docs.pytest.org/en/latest/fixture.html&#34; class=&#34;uri&#34;&gt;https://docs.pytest.org/en/latest/fixture.html&lt;/a&gt;). We will cover their pytest implementations later.&lt;/p&gt;
+&lt;p&gt;Rather than importing the app, we will first move the code to the &lt;a href=&#34;http://flask.pocoo.org/docs/0.12/patterns/appfactories/&#34;&gt;Application Factories pattern&lt;/a&gt; (also used in the tutorial &lt;a href=&#34;http://testdriven.io/part-one-flask-blueprints/&#34;&gt;soon after&lt;/a&gt;). Rewrite your &lt;code&gt;project/__init__.py&lt;/code&gt; as below:&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# project/__init__.py
+import os
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+
+db = SQLAlchemy()
+
+
+class User(db.Model):
+    __tablename__ = &amp;quot;users&amp;quot;
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(128), nullable=False)
+    email = db.Column(db.String(128), nullable=False)
+    active = db.Column(db.Boolean(), default=False, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, username, email):
+        self.username = username
+        self.email = email
+        self.created_at = datetime.datetime.now()
+
+
+def create_app():
+    app = Flask(__name__)
+
+    app_settings = os.getenv(&amp;#39;APP_SETTINGS&amp;#39;)
+    app.config.from_object(app_settings)
+
+    db.init_app(app)
+
+    @app.route(&amp;#39;/ping&amp;#39;, methods=[&amp;#39;GET&amp;#39;])
+    def ping_pong():
+        return jsonify({
+            &amp;#39;status&amp;#39;: &amp;#39;Epic success&amp;#39;,
+            &amp;#39;message&amp;#39;: &amp;#39;pong!&amp;#39;
+        })
+
+    return app&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We now have a &lt;code&gt;create_app()&lt;/code&gt; function, that can return an &lt;code&gt;app&lt;/code&gt; instance. In pytest, fixture are defined as function, with the &lt;code&gt;@pytest.fixture&lt;/code&gt; decorator.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# project/tests/conftest.py
+import pytest
+from project import create_app
+
+
+@pytest.fixture
+def app():
+    app = create_app()
+    app.config.from_object(&amp;#39;project.config.TestingConfig&amp;#39;)
+    return app&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Tests in pytest are also just function, named with the prefix &lt;code&gt;test_&lt;/code&gt;. To use a fixture in a test, just add it as an argument. Note that assertions are simpler than in unittest, you only need the &lt;code&gt;assert&lt;/code&gt; function.&lt;/p&gt;
+&lt;p&gt;Test the different configurations:&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# project/tests/test_config.py
+import os
+
+
+def test_development_config(app):
+    app.config.from_object(&amp;#39;project.config.DevelopmentConfig&amp;#39;)
+    assert app.config[&amp;#39;DEBUG&amp;#39;]
+    assert not app.config[&amp;#39;TESTING&amp;#39;]
+    assert app.config[&amp;#39;SQLALCHEMY_DATABASE_URI&amp;#39;] == os.environ.get(
+        &amp;#39;DATABASE_URL&amp;#39;)
+
+
+def test_testing_config(app):
+    app.config.from_object(&amp;#39;project.config.TestingConfig&amp;#39;)
+    assert app.config[&amp;#39;DEBUG&amp;#39;]
+    assert app.config[&amp;#39;TESTING&amp;#39;]
+    assert not app.config[&amp;#39;PRESERVE_CONTEXT_ON_EXCEPTION&amp;#39;]
+    assert app.config[&amp;#39;SQLALCHEMY_DATABASE_URI&amp;#39;] == os.environ.get(
+        &amp;#39;DATABASE_TEST_URL&amp;#39;)
+
+
+def test_production_config(app):
+    app.config.from_object(&amp;#39;project.config.ProductionConfig&amp;#39;)
+    assert not app.config[&amp;#39;DEBUG&amp;#39;]
+    assert not app.config[&amp;#39;TESTING&amp;#39;]
+    assert app.config[&amp;#39;SQLALCHEMY_DATABASE_URI&amp;#39;] == os.environ.get(
+        &amp;#39;DATABASE_URL&amp;#39;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Testing the ping route (using &lt;a href=&#34;http://flask.pocoo.org/docs/0.12/api/#flask.Flask.test_client&#34;&gt;&lt;code&gt;test_client()&lt;/code&gt;&lt;/a&gt; to get a &lt;code&gt;client&lt;/code&gt; that can test routes):&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# project/tests/test_ping.py
+import json
+
+
+def test_ping(app):
+    client = app.test_client()
+    resp = client.get(&amp;#39;/ping&amp;#39;)
+    data = json.loads(resp.data.decode())
+    assert resp.status_code == 200
+    assert &amp;#39;pong&amp;#39; in data[&amp;#39;message&amp;#39;]
+    assert &amp;#39;success&amp;#39; in data[&amp;#39;status&amp;#39;]&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;accessing-the-database-from-the-tests&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Accessing the database from the tests&lt;/h2&gt;
+&lt;div id=&#34;making-tables-accessible-with-create_all&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Making tables accessible with &lt;code&gt;create_all()&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;So far we haven’t put any code related to the database in our &lt;code&gt;app&lt;/code&gt; fixture. The tutorial has done so in &lt;code&gt;BaseTestCase&lt;/code&gt;. If we rewrite the &lt;a href=&#34;http://testdriven.io/part-one-restful-routes/&#34;&gt;&lt;code&gt;test_add_user&lt;/code&gt;&lt;/a&gt; for pytest and try to run it, we get an error.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# project/tests/test_users.py
+def test_add_user(app):
+    &amp;quot;&amp;quot;&amp;quot;Ensure a new user can be added to the database.&amp;quot;&amp;quot;&amp;quot;
+    with app.test_client() as client:
+        response = client.post(
+            &amp;#39;/users&amp;#39;,
+            data=json.dumps(dict(
+                username=&amp;#39;michael&amp;#39;,
+                email=&amp;#39;michael@realpython.com&amp;#39;
+            )),
+            content_type=&amp;#39;application/json&amp;#39;,
+        )
+        data = json.loads(response.data.decode())
+        assert response.status_code == 201
+        assert &amp;#39;michael@realpython.com was added!&amp;#39; in data[&amp;#39;message&amp;#39;]
+        assert &amp;#39;success&amp;#39; in data[&amp;#39;status&amp;#39;]&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;bash&#34;&gt;&lt;code&gt;$ docker-compose run users-service python manage.py test_app
+[...]
+======= FAILURES ======
+____ test_add_user ____
+[...]
+sqlalchemy.exc.ProgrammingError: (psycopg2.ProgrammingError) relation &amp;quot;users&amp;quot; does not exist&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So our app fixture knows about sql alchemy but hasn’t created the tables needed for our user model. From the &lt;a href=&#34;http://flask-sqlalchemy.pocoo.org/2.1/contexts/&#34;&gt;Flask-SQLAlchemy documentation&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;What it (init_db) does is prepare the application to work with SQLAlchemy. However that does not now bind the SQLAlchemy object to your application.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Let’s jump in an python shell and try to see how we can bind our &lt;code&gt;db&lt;/code&gt; object to our &lt;code&gt;app&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;$ docker exec -ti users-service bash
+root@910656bc5f75:/usr/src/app# python3
+&amp;gt;&amp;gt;&amp;gt; from project import create_app, db
+&amp;gt;&amp;gt;&amp;gt; app = create_app()
+&amp;gt;&amp;gt;&amp;gt; app
+&amp;lt;Flask &amp;#39;project&amp;#39;&amp;gt;
+&amp;gt;&amp;gt;&amp;gt; db
+&amp;lt;SQLAlchemy engine=None&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So &lt;code&gt;create_app()&lt;/code&gt; gives us an app object, but the imported &lt;code&gt;db&lt;/code&gt; isn’t connected to it out-of-the-box (it has no engine). If we jump into the &lt;a href=&#34;http://flask-sqlalchemy.pocoo.org/2.1/contexts/&#34;&gt;app context&lt;/a&gt;, the engine gets populated.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; app_ctx = app.app_context()
+&amp;gt;&amp;gt;&amp;gt; app_ctx.push()  # jump into the app context
+&amp;gt;&amp;gt;&amp;gt; db
+&amp;lt;SQLAlchemy engine=&amp;#39;postgres://postgres:postgres@users-db:5432/users_dev&amp;#39;&amp;gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;However, &lt;code&gt;db&lt;/code&gt; still doesn’t have tables and running tests at this stage would keep saying that &lt;code&gt;relation users does not exist&lt;/code&gt;. That’s why we need &lt;code&gt;create_table()&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;&amp;gt;&amp;gt;&amp;gt; db.engine.table_names()  # Check the tables currently on the engine
+[]                           # no table found
+&amp;gt;&amp;gt;&amp;gt; db.create_all()          # Create the tables according to defined models
+&amp;gt;&amp;gt;&amp;gt; db.engine.table_names()
+[&amp;#39;users&amp;#39;]                    # Now table &amp;#39;users&amp;#39; is found&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can now update our &lt;code&gt;app&lt;/code&gt; fixture:&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# project/tests/conftest.py
+import pytest
+from project import create_app, db
+
+
+@pytest.fixture
+def app():
+    app = create_app()
+    app.config.from_object(&amp;#39;project.config.TestingConfig&amp;#39;)
+    with app.app_context():   
+        # alternative pattern to app.app_context().push()
+        # all commands indented under &amp;#39;with&amp;#39; are run in the app context 
+        db.create_all()
+        return app&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;cleaning-database-with-drop_all&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Cleaning database with &lt;code&gt;drop_all()&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;Let’s check the impact of our tests on the database. Before running tests:&lt;/p&gt;
+&lt;pre class=&#34;bash&#34;&gt;&lt;code&gt;$ docker exec -ti $(docker ps -aqf &amp;quot;name=users-db&amp;quot;) psql -U postgres
+
+psql (9.6.3)
+postgres=# \c users_dev
+You are now connected to database &amp;quot;users_dev&amp;quot; as user &amp;quot;postgres&amp;quot;.
+users_dev=# \dt
+No relations found.
+users_dev=# \c users_test
+You are now connected to database &amp;quot;users_test&amp;quot; as user &amp;quot;postgres&amp;quot;.
+users_test=# \dt
+No relations found.&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;After running tests:&lt;/p&gt;
+&lt;pre class=&#34;bash&#34;&gt;&lt;code&gt;# Running pytest
+$ docker-compose run users-service python manage.py test_app
+[... Output of pytest ...]
+========= 5 passed in 0.17 seconds =========
+
+# Checking the database
+$ docker exec -ti $(docker ps -aqf &amp;quot;name=users-db&amp;quot;) psql -U postgres
+
+psql (9.6.3)
+postgres=# \c users_dev
+You are now connected to database &amp;quot;users_dev&amp;quot; as user &amp;quot;postgres&amp;quot;.
+users_dev=# \dt
+No relations found.
+users_dev=# \c users_test
+You are now connected to database &amp;quot;users_test&amp;quot; as user &amp;quot;postgres&amp;quot;.
+users_test=# \dt
+users_test=# \dt
+         List of relations
+ Schema | Name  | Type  |  Owner   
+--------+-------+-------+----------
+ public | users | table | postgres
+(1 row)
+
+users_test=# SELECT * FROM users;
+ id | username |         email          | active |         created_at         
+----+----------+------------------------+--------+----------------------------
+  1 | michael  | michael@realpython.com | f      | 2017-07-04 09:23:43.34457&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can see that the users table was successfully created in the &lt;code&gt;users_test&lt;/code&gt; database, which we selected in &lt;code&gt;conftest.py&lt;/code&gt;. A user was also successfully inserted. However, if we run the tests again and recheck the table, we can see how trouble is starting to creep in:&lt;/p&gt;
+&lt;pre class=&#34;bash&#34;&gt;&lt;code&gt;# Running test 
+[...]
+
+# Checking the database
+[...]
+users_test=# SELECT * FROM users;
+ id | username |         email          | active |         created_at         
+----+----------+------------------------+--------+----------------------------
+  1 | michael  | michael@realpython.com | f      | 2017-07-04 09:23:43.34457
+  2 | michael  | michael@realpython.com | f      | 2017-07-04 09:24:55.972571
+(2 rows)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We are not cleaning up the database after our tests. To do so, we need to add &lt;code&gt;drop_all()&lt;/code&gt; as a tear-down action for our app fixture (after &lt;code&gt;yield&lt;/code&gt;). This will not only empty the table rows, but also delete the table itself:&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# project/tests/conftest.py
+import pytest
+from project import create_app, db
+
+
+@pytest.fixture
+def app():
+    app = create_app()
+    app.config.from_object(&amp;#39;project.config.TestingConfig&amp;#39;)
+    with app.app_context():   
+        db.create_all()
+        yield app   # Note that we changed return for yield, see below for why
+        db.drop_all()&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For the first time, we added a command (&lt;code&gt;db.drop_all()&lt;/code&gt;) that needed to be executed after the test using the fixture. Previously we used &lt;code&gt;return&lt;/code&gt; to get the app out of the fixture. But using &lt;code&gt;return&lt;/code&gt; means ending the function. That’s where &lt;code&gt;yield&lt;/code&gt; comes to the rescue. Unlike &lt;code&gt;unittest&lt;/code&gt;, &lt;code&gt;pytest&lt;/code&gt; does not put setup and teardown code in dedicated function. Everything that comes before &lt;code&gt;return&lt;/code&gt;/&lt;code&gt;yield&lt;/code&gt; is setup code, everything that comes after &lt;code&gt;yield&lt;/code&gt; is teardown code. Documentation is &lt;a href=&#34;https://docs.pytest.org/en/latest/fixture.html#fixture-finalization-executing-teardown-code&#34;&gt;here&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;By using a yield statement instead of return, all the code after the yield statement serves as the teardown code.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;If you try to run tests again, you will see that the database is left clean.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;avoid-locking-postgres-with-db.session.remove&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Avoid locking postgres with &lt;code&gt;db.session.remove()&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;This is the part I still have trouble understanding. Using the fixture above, &lt;code&gt;pytest&lt;/code&gt; started hanging indefinitely at random test (usually at tests that touched the database several times, but not always). When it happened, I could not even stop &lt;code&gt;pytest&lt;/code&gt; and had to restart the container.&lt;/p&gt;
+&lt;pre class=&#34;bash&#34;&gt;&lt;code&gt;$ docker-compose run users-service python manage.py test_app
+===== test session starts =====
+[...]
+project/tests/test_configs.py ...
+project/tests/test_users.py ..
+
+hanging... hanging... hanging...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;From this &lt;a href=&#34;https://stackoverflow.com/questions/26350911/what-to-do-when-a-py-test-hangs-silently&#34;&gt;SO question&lt;/a&gt;, I got the confirmation that postgres might be locked. Using &lt;a href=&#34;https://www.devopsderek.com/blog/2012/11/13/list-and-disconnect-postgresql-db-sessions/&#34;&gt;the commands listed on devopsderek.com&lt;/a&gt;, it is possible to look at the sessions active while pytest is locked. Below we can see that one is blocked with the state &lt;a href=&#34;https://stackoverflow.com/questions/51019/what-does-it-mean-when-a-postgresql-process-is-idle-in-transaction&#34;&gt;“idle in transaction”&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;bash&#34;&gt;&lt;code&gt;# Checking the database while pytest is hanging
+$ docker exec -ti $(docker ps -aqf &amp;quot;name=users-db&amp;quot;) psql -U postgres
+postgres=# SELECT * FROM pg_stat_activity;
+
+datid |  datname   | pid | ... | state               | ... | query
+------+------------+-----+-----+---------------------+-----+-
+[... lots of sessions ...]
+16386 | users_test | 200 | ... | idle in transaction | ... | SELECT users.id...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Killing the session manually in postgres did also kill &lt;code&gt;pytest&lt;/code&gt; without needing to restart the container.&lt;/p&gt;
+&lt;pre class=&#34;bash&#34;&gt;&lt;code&gt;# Still in psql
+postgres=# SELECT pg_terminate_backend(200);
+ pg_terminate_backend 
+----------------------
+ t
+(1 row)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;bash&#34;&gt;&lt;code&gt;# In the terminal running pytest
+psycopg2.OperationalError: terminating connection due to administrator command
+server closed the connection unexpectedly
+    This probably means the server terminated abnormally
+    before or while processing the request.
+$ # free to type again&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Still following &lt;a href=&#34;https://stackoverflow.com/questions/26350911/what-to-do-when-a-py-test-hangs-silently&#34;&gt;SO advice&lt;/a&gt;, you can explicitly close the connection after each test, which solves the issue.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# project/tests/conftest.py
+import pytest
+from project import create_app, db
+
+
+@pytest.fixture
+def app():
+    app = create_app()
+    app.config.from_object(&amp;#39;project.config.TestingConfig&amp;#39;)
+    with app.app_context():   
+        db.create_all()
+        yield app  
+        db.session.remove()  # looks like db.session.close() would work as well
+        db.drop_all()&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We end up very close to the &lt;a href=&#34;http://testdriven.io/part-one-test-setup/&#34;&gt;testdriven.io example&lt;/a&gt; for &lt;code&gt;unittest&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# project/tests/base.py on http://testdriven.io/part-one-test-setup/
+from flask_testing import TestCase
+
+from project import app, db
+
+
+class BaseTestCase(TestCase):
+    def create_app(self):  # done in our pytest fixture before yield
+        app.config.from_object(&amp;#39;project.config.TestingConfig&amp;#39;)
+        return app
+        
+    def setUp(self):  # done in our pytest fixture before yield
+        db.create_all()
+        db.session.commit()
+
+    def tearDown(self): # done in our pytest fixture after yield
+        db.session.remove()
+        db.drop_all()&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I just haven’t found the reason why &lt;code&gt;db.session.commit()&lt;/code&gt; would be necessary (although I suspect it might be an alternative to explicitely declaring the app context like we did in &lt;code&gt;with&lt;/code&gt;). I will update the post when I understand it better.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Clojure for pythonista - Manipulating strings</title>
+      <link>/2017/06/13/clojure-for-pythonista---manipulating-strings/</link>
+      <pubDate>Tue, 13 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/06/13/clojure-for-pythonista---manipulating-strings/</guid>
+      <description>&lt;div id=&#34;foreword&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Foreword&lt;/h2&gt;
+&lt;p&gt;I am trying to learn clojure. This series of posts is my attempt to solve beginner exercises both in python and clojure. Exercises are inspired by the excellent Reuven Lerner’s &lt;a href=&#34;https://practicemakespython.com/&#34;&gt;Practice Makes Python&lt;/a&gt; and other sources like &lt;a href=&#34;https://learnpythonthehardway.org/&#34;&gt;Learn python the hard way&lt;/a&gt;. Before trying any exercises, you can read an excellent introduction to clojure : &lt;a href=&#34;http://www.braveclojure.com/do-things/&#34;&gt;Brave Clojure&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;This exercise introduces ways to deal with strings.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;goal&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Goal&lt;/h2&gt;
+&lt;p&gt;Create a command line script that asks the user to enter a word, sort the letters in alphabetic order and output the sentence “Your letters are: &lt;word-in-alphabetic-order&gt;”. The idea is to play both with characters sequence and string interpolation.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;reordering-letters&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Reordering letters&lt;/h2&gt;
+&lt;div id=&#34;reordering-letters-in-python&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Reordering letters in python&lt;/h3&gt;
+&lt;p&gt;In python, strings are treated like sequences of characters, so you can iterate over them like you would do on a list. There is no character type and functions that “reclaim” character as argument (e.g &lt;code&gt;ord()&lt;/code&gt;, which gives the unicode code point) are in fact asking for &lt;a href=&#34;https://docs.python.org/3/library/functions.html#ord&#34;&gt;strings of one character&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+ord(&amp;#39;bla&amp;#39;)
+&amp;gt; TypeError: ord() expected a character, but string of length 3 found&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+ord(&amp;#39;a&amp;#39;)
+&amp;gt; 97
+ord(&amp;#39;b&amp;#39;)
+&amp;gt; 98&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;When using operators like greater-than or smaller-than on characters, the unicode code points are compared (so no need to use &lt;code&gt;ord()&lt;/code&gt;).&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+&amp;#39;a&amp;#39; &amp;lt; &amp;#39;b&amp;#39;
+&amp;gt; True&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Although strings are iterable like lists, they don’t have all the list’s functions. For example, you cannot use &lt;code&gt;.sort()&lt;/code&gt; on a string. You would have to convert it to a list first with &lt;code&gt;list()&lt;/code&gt;. Note that &lt;code&gt;.sort()&lt;/code&gt; changes the list in place and return &lt;code&gt;None&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+my_str = &amp;quot;bla&amp;quot;
+my_str.sort()
+&amp;gt; AttributeError: &amp;#39;str&amp;#39; object has no attribute &amp;#39;sort&amp;#39;
+
+my_str = list(my_str)
+my_str
+&amp;gt; [&amp;#39;b&amp;#39;, &amp;#39;l&amp;#39;, &amp;#39;a&amp;#39;]
+my_str.sort()
+my_str
+&amp;gt; [&amp;#39;a&amp;#39;, &amp;#39;b&amp;#39;, &amp;#39;l&amp;#39;]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To make things simpler, python has the &lt;code&gt;sorted&lt;/code&gt; function, which work on any iterable, not just list. It also has the benefit of returning a new list rather than changing the list in-place.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+sorted(&amp;quot;bla&amp;quot;)
+&amp;gt; [&amp;#39;a&amp;#39;, &amp;#39;b&amp;#39;, &amp;#39;l&amp;#39;]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For more info on the difference between &lt;code&gt;.sort()&lt;/code&gt; and &lt;code&gt;sorted&lt;/code&gt;, read this &lt;a href=&#34;https://stackoverflow.com/questions/22442378/what-is-the-difference-between-sortedlist-vs-list-sort-python&#34;&gt;SO thread&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Both &lt;code&gt;.sort()&lt;/code&gt; and &lt;code&gt;sorted&lt;/code&gt; return list of characters. To convert this list back to a normal string, we can use &lt;a href=&#34;https://docs.python.org/3/library/stdtypes.html?highlight=join#str.join&#34;&gt;&lt;code&gt;str.join(iterable)&lt;/code&gt;&lt;/a&gt;. Note that &lt;code&gt;str&lt;/code&gt; here refers to the separator that will be placed between each element of the iterable.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+&amp;quot;&amp;quot;.join(sorted(&amp;quot;bla&amp;quot;))
+&amp;gt; &amp;#39;abl&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;reordering-letters-in-clojure&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Reordering letters in clojure&lt;/h3&gt;
+&lt;p&gt;In clojure, there is a character type, which is different than the string type. Strings (even with only one character) are delimited by double quotes. Characters have a &lt;code&gt;\&lt;/code&gt; prefix.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(= &amp;quot;a&amp;quot; &amp;quot;a&amp;quot;)
+&amp;gt; true
+
+(= \a \a)
+&amp;gt; true
+
+(= &amp;quot;a&amp;quot; \a)
+&amp;gt; false
+
+(type &amp;quot;a&amp;quot;)
+&amp;gt; java.lang.String
+
+(type \a)
+&amp;gt; java.lang.Character&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Operators like greater-than or smaller-than don’t work on strings or characters.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(&amp;gt; \a &amp;quot;a&amp;quot;)
+&amp;gt; java.lang.ClassCastException: 
+&amp;gt; java.lang.String cannot be cast to java.lang.Number
+
+(&amp;gt; &amp;quot;b&amp;quot; \a)
+&amp;gt; java.lang.ClassCastException: 
+&amp;gt; java.lang.Character cannot be cast to java.lang.Number&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As the error message states, these operators need Number and neither strings nor character are automatically casted to Number. You need to use &lt;a href=&#34;https://clojuredocs.org/clojure.core/int&#34;&gt;&lt;code&gt;int&lt;/code&gt;&lt;/a&gt; (like we did with &lt;code&gt;ord()&lt;/code&gt; in python). This coerse numbers to integer but also characters to unicode points. It does not work on strings.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(int \a)
+&amp;gt; 97
+
+(int &amp;quot;a&amp;quot;)
+&amp;gt; java.lang.ClassCastException: 
+&amp;gt; java.lang.String cannot be cast to java.lang.Character&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we can compare characters, according to “alphabetical order” (at least unicode points).&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(&amp;lt; (int \a) (int \c))
+&amp;gt; true&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To convert a single-character string to a character, we would need new functions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://clojuredocs.org/clojure.core/seq&#34;&gt;&lt;code&gt;seq&lt;/code&gt;&lt;/a&gt; takes a collection and return a seq. When used on strings, it returns a seq of the letters in the string, coerced to character.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://clojuredocs.org/clojure.core/first&#34;&gt;&lt;code&gt;first&lt;/code&gt;&lt;/a&gt; returns the first item of a collection. It is useful in our case since seq will give us a single item collection, rather than just a character.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(seq &amp;quot;a&amp;quot;)
+&amp;gt; (\a)
+(first (seq &amp;quot;a&amp;quot;))
+&amp;gt; \a
+(int (first (seq &amp;quot;a&amp;quot;)))
+&amp;gt; 97&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;An alternative to &lt;code&gt;first&lt;/code&gt; would be to use &lt;a href=&#34;https://clojuredocs.org/clojure.core/apply&#34;&gt;&lt;code&gt;apply&lt;/code&gt;&lt;/a&gt;, which lets you convert a collection to a list of arguments for a function. This is similar to unpacking argumets with &lt;a href=&#34;https://docs.python.org/3/tutorial/controlflow.html#unpacking-argument-lists&#34;&gt;&lt;code&gt;*args&lt;/code&gt; at function call in python&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(int (seq &amp;quot;a&amp;quot;))
+&amp;gt; java.lang.ClassCastException: 
+&amp;gt; clojure.lang.StringSeq cannot be cast to java.lang.Character
+
+(apply int (seq &amp;quot;a&amp;quot;))
+&amp;gt; 97&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Fortunately, sorting the letters of a strings in alphabetical order don’t require manual comparaison of each characters. The &lt;a href=&#34;https://clojuredocs.org/clojure.core/sort&#34;&gt;&lt;code&gt;sort&lt;/code&gt;&lt;/a&gt; function does both the conversion to characters and the sorting.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(sort &amp;quot;hello&amp;quot;)
+&amp;gt; (\e \h \l \l \o)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To join the characters back into a word, we can use &lt;code&gt;str&lt;/code&gt;, which concatenate strings and/or characters. &lt;code&gt;str&lt;/code&gt; expect arguments not a seq of characters, so we can use our &lt;code&gt;apply&lt;/code&gt; function again.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+;; intended use
+(str \e \h \l \l \o)
+&amp;gt; &amp;quot;ehllo&amp;quot;
+
+;; wrong
+(str (\e \h \l \l \o))
+&amp;gt; &amp;quot;(\\e \\h \\l \\l \\o)&amp;quot;
+
+;; workaround using apply
+(apply str (\e \h \l \l \o))
+&amp;gt; &amp;quot;ehllo&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;An alternative to &lt;code&gt;str&lt;/code&gt;, closer to python’s &lt;code&gt;join&lt;/code&gt; is &lt;a href=&#34;https://clojuredocs.org/clojure.string/join&#34;&gt;&lt;code&gt;clojure.string/join&lt;/code&gt;&lt;/a&gt;. It allows to choose a separator and expects an iterable as argument (no need for &lt;code&gt;apply&lt;/code&gt;).&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(clojure.string/join &amp;quot;&amp;quot; (sort &amp;quot;hello&amp;quot;))
+&amp;gt; &amp;quot;ehllo&amp;quot;
+(clojure.string/join &amp;quot;,&amp;quot; (sort &amp;quot;hello&amp;quot;))
+&amp;gt; &amp;quot;e,h,l,l,o&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;string-interpolation&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;String interpolation&lt;/h2&gt;
+&lt;div id=&#34;string-interpolation-in-python&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;String interpolation in python&lt;/h3&gt;
+&lt;p&gt;When starting out with python, it is tempting to use simple concatenate patterns to insert variable in strings.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+# Using +
+alpha_string = &amp;quot;&amp;quot;.join(sorted(&amp;quot;hello&amp;quot;))
+&amp;quot;Your reordered string is: &amp;quot; + alpha_string + &amp;quot;!&amp;quot;)
+&amp;gt; &amp;quot;Your reordered string is: ehllo!&amp;quot;
+
+# Using join (poor choice, note that you get a space between ehllo and !)
+&amp;quot; &amp;quot;.join([&amp;quot;Your reordered string is:&amp;quot;, alpha_string, &amp;quot;!&amp;quot;])
+&amp;gt; &amp;quot;Your reordered string is: ehllo !&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But you can get much nicer syntax and options using string interpolation. For example, the two examples above would fail if &lt;code&gt;alpha_string&lt;/code&gt; was a number. They would not do an implicit conversion to string, like the methods below.&lt;/p&gt;
+&lt;p&gt;Python 3.6 supports 3 types of interpolation: &lt;code&gt;%&lt;/code&gt;, &lt;code&gt;.format&lt;/code&gt; and &lt;code&gt;literal string f&lt;/code&gt;. These are &lt;a href=&#34;https://zerokspot.com/weblog/2015/12/31/new-string-formatting-in-python/&#34;&gt;well&lt;/a&gt; &lt;a href=&#34;https://blog.lerner.co.il/teaching-old-dog-new-tricks-learned-love-str-format-gave/&#34;&gt;covered&lt;/a&gt; &lt;a href=&#34;https://www.python.org/dev/peps/pep-0498/&#34;&gt;online&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;For simple variable &lt;code&gt;literal f strings&lt;/code&gt; are definitely more readable:&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+alpha_string = &amp;quot;&amp;quot;.join(sorted(&amp;quot;hello&amp;quot;))
+# Using .format
+&amp;quot;Your reordered string is: {}!&amp;quot;.format(alpha_string)
+&amp;gt; &amp;quot;Your reordered string is: ehllo!&amp;quot;
+
+# Using f (&amp;gt;= 3.6)
+f&amp;quot;Your reordered string is: {alpha_string}!&amp;quot;
+&amp;gt; &amp;quot;Your reordered string is: ehllo!&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For dictionary, it is more a matter of taste, thanks to dictionary unpacking:&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+user = {&amp;#39;name&amp;#39;: &amp;#39;Jane&amp;#39;, &amp;#39;city&amp;#39;: &amp;#39;Geneva&amp;#39;}
+# Using .format
+&amp;quot;{name} lives in {city}&amp;quot;.format(**user)
+&amp;gt; &amp;quot;Jane lives in Geneva&amp;quot;
+
+# Using f (&amp;gt;= 3.6)
+f&amp;quot;{user[&amp;#39;name&amp;#39;]} lives in {user[&amp;#39;city&amp;#39;]}&amp;quot;
+&amp;gt; &amp;quot;Jane lives in Geneva&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;string-interpolation-in-clojure&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;String interpolation in clojure&lt;/h3&gt;
+&lt;p&gt;Similar to &lt;code&gt;+&lt;/code&gt;/&lt;code&gt;join&lt;/code&gt; in python, you can do basic, not very practical, insertion of variables with &lt;code&gt;str&lt;/code&gt;/&lt;code&gt;clojure.string/join&lt;/code&gt; with clojure. Unlike python, both methods will convert number to string for you.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(def alphastring (apply str (sort &amp;quot;hello&amp;quot;)))
+
+;; Using str
+(str &amp;quot;Your reordered string is: &amp;quot; alphastring &amp;quot;!&amp;quot;)
+&amp;gt; &amp;quot;Your reordered string is: ehllo!&amp;quot;
+
+;; Using join (poor choice, note that you get a space between alphastring and &amp;quot;!&amp;quot;)
+(clojure.string/join &amp;quot; &amp;quot; [&amp;quot;Your reordered string is:&amp;quot; alphastring &amp;quot;!&amp;quot;])
+&amp;gt; &amp;quot;Your reordered string is: ehllo !&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Interpolation can be done with &lt;a href=&#34;https://clojuredocs.org/clojure.core/format&#34;&gt;&lt;code&gt;format&lt;/code&gt;&lt;/a&gt;, a pattern similar to &lt;code&gt;%-formatting&lt;/code&gt; in python. The list of &lt;code&gt;%-characters&lt;/code&gt; &lt;a href=&#34;https://dzone.com/articles/java-string-format-examples&#34;&gt;can be found here&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(def name &amp;quot;Jane&amp;quot;)
+(def city &amp;quot;Geneva&amp;quot;)
+(def age 33)
+(format &amp;quot;%s lives in %s and is %d!&amp;quot; name city age)
+&amp;gt; &amp;quot;Jane lives in Geneva and is 33!&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Clojure string interpolation options are well explained in &lt;a href=&#34;https://dzone.com/articles/java-string-format-examples&#34;&gt;this article&lt;/a&gt;, including a benchmark of their speed. The article ends up showcasing &lt;code&gt;core.incubator&lt;/code&gt;’s &lt;code&gt;&amp;lt;&amp;lt;&lt;/code&gt; macro which even lets you do string interpolation in a similar way to ruby or python’s &lt;code&gt;f&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Clojure for pythonista - User Input/Loop/Conditional</title>
+      <link>/2017/06/08/clojure-for-pythonista---user-input/loop/conditional/</link>
+      <pubDate>Thu, 08 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/06/08/clojure-for-pythonista---user-input/loop/conditional/</guid>
+      <description>&lt;div id=&#34;foreword&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Foreword&lt;/h2&gt;
+&lt;p&gt;I am trying to learn clojure. This series of posts is my attempt to solve beginner exercises both in python and clojure. Exercises are inspired by the excellent Reuven Lerner’s &lt;a href=&#34;https://practicemakespython.com/&#34;&gt;Practice Makes Python&lt;/a&gt; and other sources like &lt;a href=&#34;https://learnpythonthehardway.org/&#34;&gt;Learn python the hard way&lt;/a&gt;. Before trying any exercises, you can read an excellent introduction to clojure : &lt;a href=&#34;http://www.braveclojure.com/do-things/&#34;&gt;Brave Clojure&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;This exercise introduces the following concepts: user-input, conditional and loop.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;goal&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Goal&lt;/h2&gt;
+&lt;p&gt;Create a command line game where the user has to guess a number between 0 and 99. The final program should repeat the question until the user find the right number, providing a helpful “Higher!” or “Lower!” hint after each failed attempt.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;getting-random-numbers&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Getting random numbers&lt;/h2&gt;
+&lt;div id=&#34;getting-random-numbers-in-python&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Getting random numbers in python&lt;/h3&gt;
+&lt;p&gt;In python, random integers can be obtained from &lt;code&gt;randint&lt;/code&gt;, a function from the &lt;code&gt;random&lt;/code&gt; package.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+import random
+# Get a random number between 0 and 99
+number = random.randint(0, 100)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;getting-random-numbers-in-clojure&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Getting random numbers in clojure&lt;/h3&gt;
+&lt;p&gt;In clojure, you get random integer from the &lt;code&gt;rand-int&lt;/code&gt; function (which by default start at 0 and end at the first argument)&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(def -main []
+  (rand-int 100))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;getting-user-input&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Getting user input&lt;/h2&gt;
+&lt;div id=&#34;getting-user-input-in-python&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Getting user input in python&lt;/h3&gt;
+&lt;p&gt;In python, you can get user input with the &lt;code&gt;input&lt;/code&gt; function. &lt;code&gt;input&lt;/code&gt; takes a string as an argument that you can use to display a prompt to the user. To make sure that the input is converted to a integer, we wrap the &lt;code&gt;input&lt;/code&gt; call in &lt;code&gt;int&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+guess = int(input(&amp;quot;Enter a guess: &amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;getting-user-input-in-clojure&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Getting user input in clojure&lt;/h3&gt;
+&lt;p&gt;In clojure, you can get user input with the &lt;a href=&#34;https://clojuredocs.org/clojure.core/read-line&#34;&gt;&lt;code&gt;read-line&lt;/code&gt;&lt;/a&gt; function. The conversion to an integer is also necessary and you can use &lt;code&gt;Integer/parseInt&lt;/code&gt; for that. &lt;code&gt;read-line&lt;/code&gt; doesn’t have prompt feature, so we will print the prompt to the console with &lt;a href=&#34;https://clojuredocs.org/clojure.core/read-line&#34;&gt;&lt;code&gt;println&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(defn -main []
+  (println &amp;quot;Enter a guess:&amp;quot;)
+  (let [guess (Integer/parseInt (read-line))]))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;conditionals&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Conditionals&lt;/h2&gt;
+&lt;div id=&#34;conditionals-in-python&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Conditionals in python&lt;/h3&gt;
+&lt;p&gt;Now that we have a random number and a number entered by the user, we need to compare them and send the response response.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+import random
+number = random.randint(0, 100)
+guess = int(input(&amp;quot;Enter a guess: &amp;quot;))
+
+if number &amp;gt; guess:
+    print(&amp;quot;Too small!&amp;quot;)
+elif number &amp;lt; guess:
+    print(&amp;quot;Too big!&amp;quot;)
+else:
+    print(&amp;quot;Correct!&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;conditionals-in-clojure&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Conditionals in clojure&lt;/h3&gt;
+&lt;p&gt;In clojure, the &lt;a href=&#34;http://www.braveclojure.com/do-things/#if&#34;&gt;&lt;code&gt;if&lt;/code&gt;&lt;/a&gt; function seems to be designed for single comparison. It works as a simple “if/else”: &lt;code&gt;(if &amp;lt;test&amp;gt; &amp;lt;do-if-true&amp;gt; &amp;lt;do-if-false&amp;gt;)&lt;/code&gt;. There is no such thing as &lt;code&gt;elif&lt;/code&gt;. However, clojure has &lt;a href=&#34;https://clojuredocs.org/clojure.core/cond&#34;&gt;&lt;code&gt;cond&lt;/code&gt;&lt;/a&gt; function, which allow for as many comparison as we like. The keyword &lt;code&gt;:else&lt;/code&gt; is just the last comparison and evaluate to &lt;code&gt;true&lt;/code&gt;, if no other comparison have been &lt;code&gt;true&lt;/code&gt; before it. We could have chosen any other truthy value (e.g &lt;code&gt;:otherwise&lt;/code&gt; or &lt;code&gt;1&lt;/code&gt;).&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(defn -main []
+  (let [number (rand-int 100)]
+    (println &amp;quot;Enter a guess:&amp;quot;)
+    (let [guess (Integer/parseInt (read-line))]
+      (cond (&amp;gt; number guess)
+              (println &amp;quot;Too Low!&amp;quot;)
+            (&amp;lt; number guess)
+              (println &amp;quot;Too Big!&amp;quot;)
+            :else
+              (println &amp;quot;Yeah!&amp;quot;)))))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;loop-to-repeat-the-question&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Loop to repeat the question&lt;/h2&gt;
+&lt;div id=&#34;loop-to-repeat-the-question-in-python&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Loop to repeat the question in python&lt;/h3&gt;
+&lt;p&gt;Lastly, we need to make the program able to repeat the question when the answer is wrong.&lt;/p&gt;
+&lt;p&gt;In python, never-ending loop are often implemented with &lt;code&gt;while True&lt;/code&gt;, using the &lt;code&gt;break&lt;/code&gt; keyword to exit on specific conditions.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+import random
+number = random.randint(0, 100)
+
+while True:
+    guess = int(input(&amp;quot;Enter a guess: &amp;quot;))
+    if number &amp;gt; guess:
+        print(&amp;quot;Too small!&amp;quot;)
+    elif number &amp;lt; guess:
+        print(&amp;quot;Too big!&amp;quot;)
+    else:
+        print(&amp;quot;Correct!&amp;quot;)
+        break&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;loop-to-repeat-the-question-in-clojure&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Loop to repeat the question in clojure&lt;/h3&gt;
+&lt;p&gt;In clojure, you can take the opposite approach. Rather than saying “when to exit” (&lt;code&gt;break&lt;/code&gt;), we can use the &lt;a href=&#34;http://www.braveclojure.com/do-things/#loop&#34;&gt;&lt;code&gt;loop&lt;/code&gt;&lt;/a&gt; function and tell it “when to loop” (&lt;code&gt;recur&lt;/code&gt;):&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(defn -main []
+  (let [number (rand-int 100)]
+    (loop []
+      (println &amp;quot;Enter a guess:&amp;quot;)
+      (let [guess (Integer/parseInt (read-line))]
+        (cond (&amp;gt; number guess)
+                (do (println &amp;quot;Too Low!&amp;quot;)
+                    (recur))
+              (&amp;lt; number guess)
+                (do (println &amp;quot;Too Big!&amp;quot;)
+                    (recur))
+              :else
+                (println &amp;quot;Yeah!&amp;quot;))))))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note that we had to wrap the “actions” following each &lt;code&gt;cond&lt;/code&gt;’s conditions with the &lt;a href=&#34;http://www.braveclojure.com/do-things/#do&#34;&gt;&lt;code&gt;do&lt;/code&gt;&lt;/a&gt; function, a simple way to group multiple statements into one. Otherwise, the first call to &lt;code&gt;(recur)&lt;/code&gt; (after “Too Low!”) would be interpreted as the second condition for &lt;code&gt;cond&lt;/code&gt; (instead of &lt;code&gt;(&amp;lt; number guess)&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;Alternatively, you could use a recursive function. I haven’t been able to find if for such a short problem one method is better than the other, but this is a good illustration of a program with two functions.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(defn try-and-guess [number]
+  (println &amp;quot;Enter your guess:&amp;quot;)
+  (let [guess (Integer/parseInt (read-line))]
+    (cond
+      (&amp;lt; guess number) 
+        (do (println &amp;quot;Guess is too small...&amp;quot;)
+            (try-and-guess number))
+      (&amp;gt; guess number)
+        (do (println &amp;quot;Guess is too big...&amp;quot;)
+            (try-and-guess number))
+      :else
+      (println &amp;quot;Yeah!&amp;quot;))))
+
+(defn -main []
+  (let [number (rand-int 100)]
+    (try-and-guess number)))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

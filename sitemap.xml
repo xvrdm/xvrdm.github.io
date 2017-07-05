@@ -2,6 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>/2017/07/03/testing-flask-sqlalchemy-database-with-pytest/</loc>
+    <lastmod>2017-07-03T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/2017/06/13/clojure-for-pythonista---manipulating-strings/</loc>
+    <lastmod>2017-06-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>/2017/06/08/clojure-for-pythonista---user-input/loop/conditional/</loc>
     <lastmod>2017-06-08T00:00:00+00:00</lastmod>
   </url>
@@ -37,14 +47,26 @@
   </url>
   
   <url>
+    <loc>/tags/clojure/</loc>
+    <lastmod>2017-06-13T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/categories/clojure/</loc>
+    <lastmod>2017-06-13T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>/tags/dplyr/</loc>
-    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/dt/</loc>
-    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-03-31T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -61,14 +83,26 @@
   </url>
   
   <url>
+    <loc>/tags/flask/</loc>
+    <lastmod>2017-07-03T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/flask-sqlalchemy/</loc>
+    <lastmod>2017-07-03T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>/</loc>
-    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-07-03T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/leaflet/</loc>
-    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-03-31T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -80,25 +114,43 @@
   
   <url>
     <loc>/post/</loc>
-    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-07-03T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/purrr/</loc>
-    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/pytest/</loc>
+    <lastmod>2017-07-03T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/python/</loc>
+    <lastmod>2017-07-03T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/categories/python/</loc>
+    <lastmod>2017-07-03T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/r/</loc>
-    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/categories/r/</loc>
-    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -110,19 +162,19 @@
   
   <url>
     <loc>/tags/rmarkdown/</loc>
-    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-04-16T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/rvest/</loc>
-    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/tags/scraping/</loc>
-    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -133,7 +185,7 @@
   
   <url>
     <loc>/tags/xml2/</loc>
-    <lastmod>2017-06-08T00:00:00+00:00</lastmod>
+    <lastmod>2017-05-08T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   

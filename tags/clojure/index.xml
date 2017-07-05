@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Clojure on Invalid Input</title>
+    <link>/tags/clojure/index.xml</link>
+    <description>Recent content in Clojure on Invalid Input</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <atom:link href="/tags/clojure/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Clojure for pythonista - Manipulating strings</title>
+      <link>/2017/06/13/clojure-for-pythonista---manipulating-strings/</link>
+      <pubDate>Tue, 13 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/06/13/clojure-for-pythonista---manipulating-strings/</guid>
+      <description>&lt;div id=&#34;foreword&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Foreword&lt;/h2&gt;
+&lt;p&gt;I am trying to learn clojure. This series of posts is my attempt to solve beginner exercises both in python and clojure. Exercises are inspired by the excellent Reuven Lerner’s &lt;a href=&#34;https://practicemakespython.com/&#34;&gt;Practice Makes Python&lt;/a&gt; and other sources like &lt;a href=&#34;https://learnpythonthehardway.org/&#34;&gt;Learn python the hard way&lt;/a&gt;. Before trying any exercises, you can read an excellent introduction to clojure : &lt;a href=&#34;http://www.braveclojure.com/do-things/&#34;&gt;Brave Clojure&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;This exercise introduces ways to deal with strings.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;goal&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Goal&lt;/h2&gt;
+&lt;p&gt;Create a command line script that asks the user to enter a word, sort the letters in alphabetic order and output the sentence “Your letters are: &lt;word-in-alphabetic-order&gt;”. The idea is to play both with characters sequence and string interpolation.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;reordering-letters&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Reordering letters&lt;/h2&gt;
+&lt;div id=&#34;reordering-letters-in-python&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Reordering letters in python&lt;/h3&gt;
+&lt;p&gt;In python, strings are treated like sequences of characters, so you can iterate over them like you would do on a list. There is no character type and functions that “reclaim” character as argument (e.g &lt;code&gt;ord()&lt;/code&gt;, which gives the unicode code point) are in fact asking for &lt;a href=&#34;https://docs.python.org/3/library/functions.html#ord&#34;&gt;strings of one character&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+ord(&amp;#39;bla&amp;#39;)
+&amp;gt; TypeError: ord() expected a character, but string of length 3 found&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+ord(&amp;#39;a&amp;#39;)
+&amp;gt; 97
+ord(&amp;#39;b&amp;#39;)
+&amp;gt; 98&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;When using operators like greater-than or smaller-than on characters, the unicode code points are compared (so no need to use &lt;code&gt;ord()&lt;/code&gt;).&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+&amp;#39;a&amp;#39; &amp;lt; &amp;#39;b&amp;#39;
+&amp;gt; True&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Although strings are iterable like lists, they don’t have all the list’s functions. For example, you cannot use &lt;code&gt;.sort()&lt;/code&gt; on a string. You would have to convert it to a list first with &lt;code&gt;list()&lt;/code&gt;. Note that &lt;code&gt;.sort()&lt;/code&gt; changes the list in place and return &lt;code&gt;None&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+my_str = &amp;quot;bla&amp;quot;
+my_str.sort()
+&amp;gt; AttributeError: &amp;#39;str&amp;#39; object has no attribute &amp;#39;sort&amp;#39;
+
+my_str = list(my_str)
+my_str
+&amp;gt; [&amp;#39;b&amp;#39;, &amp;#39;l&amp;#39;, &amp;#39;a&amp;#39;]
+my_str.sort()
+my_str
+&amp;gt; [&amp;#39;a&amp;#39;, &amp;#39;b&amp;#39;, &amp;#39;l&amp;#39;]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To make things simpler, python has the &lt;code&gt;sorted&lt;/code&gt; function, which work on any iterable, not just list. It also has the benefit of returning a new list rather than changing the list in-place.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+sorted(&amp;quot;bla&amp;quot;)
+&amp;gt; [&amp;#39;a&amp;#39;, &amp;#39;b&amp;#39;, &amp;#39;l&amp;#39;]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For more info on the difference between &lt;code&gt;.sort()&lt;/code&gt; and &lt;code&gt;sorted&lt;/code&gt;, read this &lt;a href=&#34;https://stackoverflow.com/questions/22442378/what-is-the-difference-between-sortedlist-vs-list-sort-python&#34;&gt;SO thread&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Both &lt;code&gt;.sort()&lt;/code&gt; and &lt;code&gt;sorted&lt;/code&gt; return list of characters. To convert this list back to a normal string, we can use &lt;a href=&#34;https://docs.python.org/3/library/stdtypes.html?highlight=join#str.join&#34;&gt;&lt;code&gt;str.join(iterable)&lt;/code&gt;&lt;/a&gt;. Note that &lt;code&gt;str&lt;/code&gt; here refers to the separator that will be placed between each element of the iterable.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+&amp;quot;&amp;quot;.join(sorted(&amp;quot;bla&amp;quot;))
+&amp;gt; &amp;#39;abl&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;reordering-letters-in-clojure&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Reordering letters in clojure&lt;/h3&gt;
+&lt;p&gt;In clojure, there is a character type, which is different than the string type. Strings (even with only one character) are delimited by double quotes. Characters have a &lt;code&gt;\&lt;/code&gt; prefix.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(= &amp;quot;a&amp;quot; &amp;quot;a&amp;quot;)
+&amp;gt; true
+
+(= \a \a)
+&amp;gt; true
+
+(= &amp;quot;a&amp;quot; \a)
+&amp;gt; false
+
+(type &amp;quot;a&amp;quot;)
+&amp;gt; java.lang.String
+
+(type \a)
+&amp;gt; java.lang.Character&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Operators like greater-than or smaller-than don’t work on strings or characters.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(&amp;gt; \a &amp;quot;a&amp;quot;)
+&amp;gt; java.lang.ClassCastException: 
+&amp;gt; java.lang.String cannot be cast to java.lang.Number
+
+(&amp;gt; &amp;quot;b&amp;quot; \a)
+&amp;gt; java.lang.ClassCastException: 
+&amp;gt; java.lang.Character cannot be cast to java.lang.Number&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As the error message states, these operators need Number and neither strings nor character are automatically casted to Number. You need to use &lt;a href=&#34;https://clojuredocs.org/clojure.core/int&#34;&gt;&lt;code&gt;int&lt;/code&gt;&lt;/a&gt; (like we did with &lt;code&gt;ord()&lt;/code&gt; in python). This coerse numbers to integer but also characters to unicode points. It does not work on strings.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(int \a)
+&amp;gt; 97
+
+(int &amp;quot;a&amp;quot;)
+&amp;gt; java.lang.ClassCastException: 
+&amp;gt; java.lang.String cannot be cast to java.lang.Character&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we can compare characters, according to “alphabetical order” (at least unicode points).&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(&amp;lt; (int \a) (int \c))
+&amp;gt; true&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To convert a single-character string to a character, we would need new functions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://clojuredocs.org/clojure.core/seq&#34;&gt;&lt;code&gt;seq&lt;/code&gt;&lt;/a&gt; takes a collection and return a seq. When used on strings, it returns a seq of the letters in the string, coerced to character.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://clojuredocs.org/clojure.core/first&#34;&gt;&lt;code&gt;first&lt;/code&gt;&lt;/a&gt; returns the first item of a collection. It is useful in our case since seq will give us a single item collection, rather than just a character.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(seq &amp;quot;a&amp;quot;)
+&amp;gt; (\a)
+(first (seq &amp;quot;a&amp;quot;))
+&amp;gt; \a
+(int (first (seq &amp;quot;a&amp;quot;)))
+&amp;gt; 97&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;An alternative to &lt;code&gt;first&lt;/code&gt; would be to use &lt;a href=&#34;https://clojuredocs.org/clojure.core/apply&#34;&gt;&lt;code&gt;apply&lt;/code&gt;&lt;/a&gt;, which lets you convert a collection to a list of arguments for a function. This is similar to unpacking argumets with &lt;a href=&#34;https://docs.python.org/3/tutorial/controlflow.html#unpacking-argument-lists&#34;&gt;&lt;code&gt;*args&lt;/code&gt; at function call in python&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(int (seq &amp;quot;a&amp;quot;))
+&amp;gt; java.lang.ClassCastException: 
+&amp;gt; clojure.lang.StringSeq cannot be cast to java.lang.Character
+
+(apply int (seq &amp;quot;a&amp;quot;))
+&amp;gt; 97&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Fortunately, sorting the letters of a strings in alphabetical order don’t require manual comparaison of each characters. The &lt;a href=&#34;https://clojuredocs.org/clojure.core/sort&#34;&gt;&lt;code&gt;sort&lt;/code&gt;&lt;/a&gt; function does both the conversion to characters and the sorting.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(sort &amp;quot;hello&amp;quot;)
+&amp;gt; (\e \h \l \l \o)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To join the characters back into a word, we can use &lt;code&gt;str&lt;/code&gt;, which concatenate strings and/or characters. &lt;code&gt;str&lt;/code&gt; expect arguments not a seq of characters, so we can use our &lt;code&gt;apply&lt;/code&gt; function again.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+;; intended use
+(str \e \h \l \l \o)
+&amp;gt; &amp;quot;ehllo&amp;quot;
+
+;; wrong
+(str (\e \h \l \l \o))
+&amp;gt; &amp;quot;(\\e \\h \\l \\l \\o)&amp;quot;
+
+;; workaround using apply
+(apply str (\e \h \l \l \o))
+&amp;gt; &amp;quot;ehllo&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;An alternative to &lt;code&gt;str&lt;/code&gt;, closer to python’s &lt;code&gt;join&lt;/code&gt; is &lt;a href=&#34;https://clojuredocs.org/clojure.string/join&#34;&gt;&lt;code&gt;clojure.string/join&lt;/code&gt;&lt;/a&gt;. It allows to choose a separator and expects an iterable as argument (no need for &lt;code&gt;apply&lt;/code&gt;).&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(clojure.string/join &amp;quot;&amp;quot; (sort &amp;quot;hello&amp;quot;))
+&amp;gt; &amp;quot;ehllo&amp;quot;
+(clojure.string/join &amp;quot;,&amp;quot; (sort &amp;quot;hello&amp;quot;))
+&amp;gt; &amp;quot;e,h,l,l,o&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;string-interpolation&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;String interpolation&lt;/h2&gt;
+&lt;div id=&#34;string-interpolation-in-python&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;String interpolation in python&lt;/h3&gt;
+&lt;p&gt;When starting out with python, it is tempting to use simple concatenate patterns to insert variable in strings.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+# Using +
+alpha_string = &amp;quot;&amp;quot;.join(sorted(&amp;quot;hello&amp;quot;))
+&amp;quot;Your reordered string is: &amp;quot; + alpha_string + &amp;quot;!&amp;quot;)
+&amp;gt; &amp;quot;Your reordered string is: ehllo!&amp;quot;
+
+# Using join (poor choice, note that you get a space between ehllo and !)
+&amp;quot; &amp;quot;.join([&amp;quot;Your reordered string is:&amp;quot;, alpha_string, &amp;quot;!&amp;quot;])
+&amp;gt; &amp;quot;Your reordered string is: ehllo !&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But you can get much nicer syntax and options using string interpolation. For example, the two examples above would fail if &lt;code&gt;alpha_string&lt;/code&gt; was a number. They would not do an implicit conversion to string, like the methods below.&lt;/p&gt;
+&lt;p&gt;Python 3.6 supports 3 types of interpolation: &lt;code&gt;%&lt;/code&gt;, &lt;code&gt;.format&lt;/code&gt; and &lt;code&gt;literal string f&lt;/code&gt;. These are &lt;a href=&#34;https://zerokspot.com/weblog/2015/12/31/new-string-formatting-in-python/&#34;&gt;well&lt;/a&gt; &lt;a href=&#34;https://blog.lerner.co.il/teaching-old-dog-new-tricks-learned-love-str-format-gave/&#34;&gt;covered&lt;/a&gt; &lt;a href=&#34;https://www.python.org/dev/peps/pep-0498/&#34;&gt;online&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;For simple variable &lt;code&gt;literal f strings&lt;/code&gt; are definitely more readable:&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+alpha_string = &amp;quot;&amp;quot;.join(sorted(&amp;quot;hello&amp;quot;))
+# Using .format
+&amp;quot;Your reordered string is: {}!&amp;quot;.format(alpha_string)
+&amp;gt; &amp;quot;Your reordered string is: ehllo!&amp;quot;
+
+# Using f (&amp;gt;= 3.6)
+f&amp;quot;Your reordered string is: {alpha_string}!&amp;quot;
+&amp;gt; &amp;quot;Your reordered string is: ehllo!&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For dictionary, it is more a matter of taste, thanks to dictionary unpacking:&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+user = {&amp;#39;name&amp;#39;: &amp;#39;Jane&amp;#39;, &amp;#39;city&amp;#39;: &amp;#39;Geneva&amp;#39;}
+# Using .format
+&amp;quot;{name} lives in {city}&amp;quot;.format(**user)
+&amp;gt; &amp;quot;Jane lives in Geneva&amp;quot;
+
+# Using f (&amp;gt;= 3.6)
+f&amp;quot;{user[&amp;#39;name&amp;#39;]} lives in {user[&amp;#39;city&amp;#39;]}&amp;quot;
+&amp;gt; &amp;quot;Jane lives in Geneva&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;string-interpolation-in-clojure&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;String interpolation in clojure&lt;/h3&gt;
+&lt;p&gt;Similar to &lt;code&gt;+&lt;/code&gt;/&lt;code&gt;join&lt;/code&gt; in python, you can do basic, not very practical, insertion of variables with &lt;code&gt;str&lt;/code&gt;/&lt;code&gt;clojure.string/join&lt;/code&gt; with clojure. Unlike python, both methods will convert number to string for you.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(def alphastring (apply str (sort &amp;quot;hello&amp;quot;)))
+
+;; Using str
+(str &amp;quot;Your reordered string is: &amp;quot; alphastring &amp;quot;!&amp;quot;)
+&amp;gt; &amp;quot;Your reordered string is: ehllo!&amp;quot;
+
+;; Using join (poor choice, note that you get a space between alphastring and &amp;quot;!&amp;quot;)
+(clojure.string/join &amp;quot; &amp;quot; [&amp;quot;Your reordered string is:&amp;quot; alphastring &amp;quot;!&amp;quot;])
+&amp;gt; &amp;quot;Your reordered string is: ehllo !&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Interpolation can be done with &lt;a href=&#34;https://clojuredocs.org/clojure.core/format&#34;&gt;&lt;code&gt;format&lt;/code&gt;&lt;/a&gt;, a pattern similar to &lt;code&gt;%-formatting&lt;/code&gt; in python. The list of &lt;code&gt;%-characters&lt;/code&gt; &lt;a href=&#34;https://dzone.com/articles/java-string-format-examples&#34;&gt;can be found here&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(def name &amp;quot;Jane&amp;quot;)
+(def city &amp;quot;Geneva&amp;quot;)
+(def age 33)
+(format &amp;quot;%s lives in %s and is %d!&amp;quot; name city age)
+&amp;gt; &amp;quot;Jane lives in Geneva and is 33!&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Clojure string interpolation options are well explained in &lt;a href=&#34;https://dzone.com/articles/java-string-format-examples&#34;&gt;this article&lt;/a&gt;, including a benchmark of their speed. The article ends up showcasing &lt;code&gt;core.incubator&lt;/code&gt;’s &lt;code&gt;&amp;lt;&amp;lt;&lt;/code&gt; macro which even lets you do string interpolation in a similar way to ruby or python’s &lt;code&gt;f&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Clojure for pythonista - User Input/Loop/Conditional</title>
+      <link>/2017/06/08/clojure-for-pythonista---user-input/loop/conditional/</link>
+      <pubDate>Thu, 08 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/06/08/clojure-for-pythonista---user-input/loop/conditional/</guid>
+      <description>&lt;div id=&#34;foreword&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Foreword&lt;/h2&gt;
+&lt;p&gt;I am trying to learn clojure. This series of posts is my attempt to solve beginner exercises both in python and clojure. Exercises are inspired by the excellent Reuven Lerner’s &lt;a href=&#34;https://practicemakespython.com/&#34;&gt;Practice Makes Python&lt;/a&gt; and other sources like &lt;a href=&#34;https://learnpythonthehardway.org/&#34;&gt;Learn python the hard way&lt;/a&gt;. Before trying any exercises, you can read an excellent introduction to clojure : &lt;a href=&#34;http://www.braveclojure.com/do-things/&#34;&gt;Brave Clojure&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;This exercise introduces the following concepts: user-input, conditional and loop.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;goal&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Goal&lt;/h2&gt;
+&lt;p&gt;Create a command line game where the user has to guess a number between 0 and 99. The final program should repeat the question until the user find the right number, providing a helpful “Higher!” or “Lower!” hint after each failed attempt.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;getting-random-numbers&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Getting random numbers&lt;/h2&gt;
+&lt;div id=&#34;getting-random-numbers-in-python&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Getting random numbers in python&lt;/h3&gt;
+&lt;p&gt;In python, random integers can be obtained from &lt;code&gt;randint&lt;/code&gt;, a function from the &lt;code&gt;random&lt;/code&gt; package.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+import random
+# Get a random number between 0 and 99
+number = random.randint(0, 100)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;getting-random-numbers-in-clojure&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Getting random numbers in clojure&lt;/h3&gt;
+&lt;p&gt;In clojure, you get random integer from the &lt;code&gt;rand-int&lt;/code&gt; function (which by default start at 0 and end at the first argument)&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(def -main []
+  (rand-int 100))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;getting-user-input&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Getting user input&lt;/h2&gt;
+&lt;div id=&#34;getting-user-input-in-python&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Getting user input in python&lt;/h3&gt;
+&lt;p&gt;In python, you can get user input with the &lt;code&gt;input&lt;/code&gt; function. &lt;code&gt;input&lt;/code&gt; takes a string as an argument that you can use to display a prompt to the user. To make sure that the input is converted to a integer, we wrap the &lt;code&gt;input&lt;/code&gt; call in &lt;code&gt;int&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+guess = int(input(&amp;quot;Enter a guess: &amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;getting-user-input-in-clojure&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Getting user input in clojure&lt;/h3&gt;
+&lt;p&gt;In clojure, you can get user input with the &lt;a href=&#34;https://clojuredocs.org/clojure.core/read-line&#34;&gt;&lt;code&gt;read-line&lt;/code&gt;&lt;/a&gt; function. The conversion to an integer is also necessary and you can use &lt;code&gt;Integer/parseInt&lt;/code&gt; for that. &lt;code&gt;read-line&lt;/code&gt; doesn’t have prompt feature, so we will print the prompt to the console with &lt;a href=&#34;https://clojuredocs.org/clojure.core/read-line&#34;&gt;&lt;code&gt;println&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(defn -main []
+  (println &amp;quot;Enter a guess:&amp;quot;)
+  (let [guess (Integer/parseInt (read-line))]))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;conditionals&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Conditionals&lt;/h2&gt;
+&lt;div id=&#34;conditionals-in-python&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Conditionals in python&lt;/h3&gt;
+&lt;p&gt;Now that we have a random number and a number entered by the user, we need to compare them and send the response response.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+import random
+number = random.randint(0, 100)
+guess = int(input(&amp;quot;Enter a guess: &amp;quot;))
+
+if number &amp;gt; guess:
+    print(&amp;quot;Too small!&amp;quot;)
+elif number &amp;lt; guess:
+    print(&amp;quot;Too big!&amp;quot;)
+else:
+    print(&amp;quot;Correct!&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;conditionals-in-clojure&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Conditionals in clojure&lt;/h3&gt;
+&lt;p&gt;In clojure, the &lt;a href=&#34;http://www.braveclojure.com/do-things/#if&#34;&gt;&lt;code&gt;if&lt;/code&gt;&lt;/a&gt; function seems to be designed for single comparison. It works as a simple “if/else”: &lt;code&gt;(if &amp;lt;test&amp;gt; &amp;lt;do-if-true&amp;gt; &amp;lt;do-if-false&amp;gt;)&lt;/code&gt;. There is no such thing as &lt;code&gt;elif&lt;/code&gt;. However, clojure has &lt;a href=&#34;https://clojuredocs.org/clojure.core/cond&#34;&gt;&lt;code&gt;cond&lt;/code&gt;&lt;/a&gt; function, which allow for as many comparison as we like. The keyword &lt;code&gt;:else&lt;/code&gt; is just the last comparison and evaluate to &lt;code&gt;true&lt;/code&gt;, if no other comparison have been &lt;code&gt;true&lt;/code&gt; before it. We could have chosen any other truthy value (e.g &lt;code&gt;:otherwise&lt;/code&gt; or &lt;code&gt;1&lt;/code&gt;).&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(defn -main []
+  (let [number (rand-int 100)]
+    (println &amp;quot;Enter a guess:&amp;quot;)
+    (let [guess (Integer/parseInt (read-line))]
+      (cond (&amp;gt; number guess)
+              (println &amp;quot;Too Low!&amp;quot;)
+            (&amp;lt; number guess)
+              (println &amp;quot;Too Big!&amp;quot;)
+            :else
+              (println &amp;quot;Yeah!&amp;quot;)))))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;loop-to-repeat-the-question&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Loop to repeat the question&lt;/h2&gt;
+&lt;div id=&#34;loop-to-repeat-the-question-in-python&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Loop to repeat the question in python&lt;/h3&gt;
+&lt;p&gt;Lastly, we need to make the program able to repeat the question when the answer is wrong.&lt;/p&gt;
+&lt;p&gt;In python, never-ending loop are often implemented with &lt;code&gt;while True&lt;/code&gt;, using the &lt;code&gt;break&lt;/code&gt; keyword to exit on specific conditions.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# python
+import random
+number = random.randint(0, 100)
+
+while True:
+    guess = int(input(&amp;quot;Enter a guess: &amp;quot;))
+    if number &amp;gt; guess:
+        print(&amp;quot;Too small!&amp;quot;)
+    elif number &amp;lt; guess:
+        print(&amp;quot;Too big!&amp;quot;)
+    else:
+        print(&amp;quot;Correct!&amp;quot;)
+        break&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;loop-to-repeat-the-question-in-clojure&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Loop to repeat the question in clojure&lt;/h3&gt;
+&lt;p&gt;In clojure, you can take the opposite approach. Rather than saying “when to exit” (&lt;code&gt;break&lt;/code&gt;), we can use the &lt;a href=&#34;http://www.braveclojure.com/do-things/#loop&#34;&gt;&lt;code&gt;loop&lt;/code&gt;&lt;/a&gt; function and tell it “when to loop” (&lt;code&gt;recur&lt;/code&gt;):&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(defn -main []
+  (let [number (rand-int 100)]
+    (loop []
+      (println &amp;quot;Enter a guess:&amp;quot;)
+      (let [guess (Integer/parseInt (read-line))]
+        (cond (&amp;gt; number guess)
+                (do (println &amp;quot;Too Low!&amp;quot;)
+                    (recur))
+              (&amp;lt; number guess)
+                (do (println &amp;quot;Too Big!&amp;quot;)
+                    (recur))
+              :else
+                (println &amp;quot;Yeah!&amp;quot;))))))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note that we had to wrap the “actions” following each &lt;code&gt;cond&lt;/code&gt;’s conditions with the &lt;a href=&#34;http://www.braveclojure.com/do-things/#do&#34;&gt;&lt;code&gt;do&lt;/code&gt;&lt;/a&gt; function, a simple way to group multiple statements into one. Otherwise, the first call to &lt;code&gt;(recur)&lt;/code&gt; (after “Too Low!”) would be interpreted as the second condition for &lt;code&gt;cond&lt;/code&gt; (instead of &lt;code&gt;(&amp;lt; number guess)&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;Alternatively, you could use a recursive function. I haven’t been able to find if for such a short problem one method is better than the other, but this is a good illustration of a program with two functions.&lt;/p&gt;
+&lt;pre class=&#34;clojure&#34;&gt;&lt;code&gt;;; clojure
+(defn try-and-guess [number]
+  (println &amp;quot;Enter your guess:&amp;quot;)
+  (let [guess (Integer/parseInt (read-line))]
+    (cond
+      (&amp;lt; guess number) 
+        (do (println &amp;quot;Guess is too small...&amp;quot;)
+            (try-and-guess number))
+      (&amp;gt; guess number)
+        (do (println &amp;quot;Guess is too big...&amp;quot;)
+            (try-and-guess number))
+      :else
+      (println &amp;quot;Yeah!&amp;quot;))))
+
+(defn -main []
+  (let [number (rand-int 100)]
+    (try-and-guess number)))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
