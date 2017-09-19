@@ -59,35 +59,53 @@ listing_html %&amp;gt;%
 &lt;li&gt;“spin and interact with a headless browser”: create a virtual browser (we won’t see it, it happens in the background) that will browse/render the page and give us back it’s content (including the javascript generated content). “Splash” is one these headless browsers, but you might have heard of another one named “phantomJS”.&lt;/li&gt;
 &lt;li&gt;“in a docker container”: think of docker is a way to easily run lightweight virtual machines (called container). So rather than installing splash and all its python dependencies, we will run a virtual machine with splash installed in it and destroy it when we are done, leaving our main system untouched.&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;Installing docker is beyond the scope of this post, but there are tons of ressource online. At the time of this writing, to install &lt;code&gt;splashr&lt;/code&gt; and &lt;code&gt;harbor&lt;/code&gt; (the package that manages docker from R), you need to grab them from github.&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;devtools::install_github(&amp;quot;wch/harbor&amp;quot;)
+&lt;p&gt;Installing docker is beyond the scope of this post, but there are tons of ressource online. At the time of this writing, to install &lt;a href=&#34;https://github.com/hrbrmstr/splashr&#34;&gt;&lt;code&gt;splashr&lt;/code&gt;&lt;/a&gt; and &lt;a href=&#34;https://github.com/bhaskarvk/docker&#34;&gt;&lt;code&gt;docker&lt;/code&gt;&lt;/a&gt; (the package that manages docker from R), you need to grab them from github.&lt;/p&gt;
+&lt;p&gt;The github page of &lt;a href=&#34;https://github.com/bhaskarvk/docker&#34;&gt;&lt;code&gt;docker&lt;/code&gt;&lt;/a&gt; (the R package) explains how to install the python package &lt;a href=&#34;https://docker-py.readthedocs.io/en/stable/&#34;&gt;&lt;code&gt;docker&lt;/code&gt;&lt;/a&gt;. Yes, you read that well: in order to use &lt;a href=&#34;http://splash.readthedocs.io&#34;&gt;&lt;code&gt;splash&lt;/code&gt;&lt;/a&gt; (the scrapping python lib), &lt;a href=&#34;https://github.com/hrbrmstr/%5Bsplashr&#34;&gt;&lt;code&gt;splashr&lt;/code&gt;&lt;/a&gt; uses:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/bhaskarvk/docker&#34;&gt;&lt;code&gt;docker&lt;/code&gt;&lt;/a&gt; (the R package),
+&lt;ul&gt;
+&lt;li&gt;which uses &lt;a href=&#34;https://docker-py.readthedocs.io/en/stable/&#34;&gt;&lt;code&gt;docker&lt;/code&gt;&lt;/a&gt; (the python lib installed in a virtualenv named &lt;code&gt;docker&lt;/code&gt;),
+&lt;ul&gt;
+&lt;li&gt;which uses &lt;a href=&#34;https://www.docker.com/&#34;&gt;&lt;code&gt;docker&lt;/code&gt;&lt;/a&gt; (the container engine).&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So proceed in steps:&lt;/p&gt;
+&lt;ol style=&#34;list-style-type: decimal&#34;&gt;
+&lt;li&gt;Install &lt;a href=&#34;https://www.docker.com/&#34;&gt;&lt;code&gt;docker&lt;/code&gt;&lt;/a&gt; (the engine)&lt;/li&gt;
+&lt;li&gt;Install &lt;a href=&#34;https://docker-py.readthedocs.io/en/stable/&#34;&gt;&lt;code&gt;docker&lt;/code&gt;&lt;/a&gt; (the python lib) in a virtualenv like explained &lt;a href=&#34;https://github.com/bhaskarvk/docker&#34;&gt;here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Install the R packages&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;devtools::install_github(&amp;quot;bhaskarvk/docker&amp;quot;)
 devtools::install_github(&amp;quot;hrbrmstr/splashr&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;ol start=&#34;4&#34; style=&#34;list-style-type: decimal&#34;&gt;
+&lt;li&gt;Let RStudio know that you want python commands to be run in this virtualenv&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Use the path where you installed the docker venv
+reticulate::use_virtualenv(&amp;quot;~/dev/virtualenvs/docker&amp;quot;, required=T)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;The very first time we run &lt;code&gt;splashr&lt;/code&gt;, it might be a bit slow: it will have to download the docker image (the template used to create container) that has &lt;code&gt;Splash&lt;/code&gt; installed in it. The image is documented &lt;a href=&#34;https://hub.docker.com/r/hrbrmstr/splashttpd/&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;suppressMessages(library(splashr))
 install_splash()&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## Using default tag: latest
-## latest: Pulling from hrbrmstr/splashttpd
-## Digest: sha256:ef25cda0c8e4c488ff9e002191fc506e05841d1f5af24d00a6450033ae7ac80c
-## Status: Image is up to date for hrbrmstr/splashttpd:latest&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Pulling from scrapinghub/splash&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Digest: sha256:08c9b401fb812c9bf6591773c88c73b0c535336b97dd1ac04f9dbb988b2a7f76&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Status: Image is up to date for scrapinghub/splash:3.0&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;We can then use &lt;code&gt;splashr&lt;/code&gt; to create a &lt;code&gt;splash&lt;/code&gt; container and get the &lt;code&gt;html&lt;/code&gt;, this time with javascript generated content in it. The &lt;code&gt;xml2&lt;/code&gt; functions can still be used on the html returned by &lt;code&gt;splashr&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;I added a wait time of two seconds between &lt;code&gt;start_splash&lt;/code&gt; and &lt;code&gt;render_html&lt;/code&gt; because I kept getting errors looking like &lt;code&gt;render_html&lt;/code&gt; was called before the container was fully operational.&lt;/p&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;splash_container &amp;lt;- splashr::start_splash()&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## 2bd11092c378745aa9078ba0059f059854a25f1c022171138ac84958e4cf60f0&lt;/code&gt;&lt;/pre&gt;
-&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;Sys.sleep(2)
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;splash_container &amp;lt;- splashr::start_splash()
+Sys.sleep(2)
 listing_html_js &amp;lt;- splashr::render_html(url = listing_url)
 
 count &amp;lt;- listing_html_js %&amp;gt;%
   html_node(&amp;quot;#count-search&amp;quot;) %&amp;gt;%
   html_text()
 print(paste(&amp;quot;count value is:&amp;quot;, count))&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;count value is: (20 results)&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;count value is: (32 results)&amp;quot;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;The number is extracted with a little regular expression and the &lt;code&gt;stringr&lt;/code&gt; package:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;offer_number &amp;lt;- stringr::str_extract(count, &amp;quot;[0-9]+&amp;quot;) 
 print(paste(&amp;quot;offer_number value is:&amp;quot;, offer_number))&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;offer_number value is: 20&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;offer_number value is: 32&amp;quot;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Don’t forget to stop and delete your container.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;stop_splash(splash_container)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## 2bd11092c378&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;We now have the expected number of offers, which we can use to verify our final dataset (read &lt;a href=&#34;https://xvrdm.github.io/2017/03/31/scrape-a-list-of-rental-offers-using-rvest-and-purrr/&#34;&gt;previous post&lt;/a&gt; to see how).&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
@@ -284,7 +302,10 @@ density &amp;lt;- url %&amp;gt;%
   html_node(xpath=&amp;#39;//table[contains(@class,&amp;quot;wikitable&amp;quot;)]&amp;#39;) %&amp;gt;%
   html_table() %&amp;gt;%
   rename(Population=`Population[Note 2]`) %&amp;gt;%
-  mutate(Population=as.numeric(stringr::str_replace_all(Population, &amp;quot;,&amp;quot;, &amp;quot;&amp;quot;))) %&amp;gt;%
+  # Remove comma and notes reference (digit between brackets)
+  mutate(Population=as.numeric(
+    stringr::str_replace_all(
+      Population, &amp;quot;(,|(\\[[:digit:]*\\]))&amp;quot;, &amp;quot;&amp;quot;))) %&amp;gt;%
   filter(Code != &amp;quot;CH&amp;quot;) %&amp;gt;%
   select(Code, Canton, Population)
 
@@ -294,7 +315,7 @@ DT::datatable(
   rownames = FALSE,
   caption = &amp;quot;Table 1 : Subset of wikipedia data for cantons.&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
 &lt;div id=&#34;htmlwidget-1&#34; style=&#34;width:100%;height:auto;&#34; class=&#34;datatables html-widget&#34;&gt;&lt;/div&gt;
-&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-1&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 1 : Subset of wikipedia data for cantons.&lt;\/caption&gt;&#34;,&#34;data&#34;:[[&#34;ZH&#34;,&#34;BE&#34;,&#34;LU&#34;,&#34;UR&#34;,&#34;SZ&#34;,&#34;OW&#34;,&#34;NW&#34;,&#34;GL&#34;,&#34;ZG&#34;,&#34;FR&#34;,&#34;SO&#34;,&#34;BS&#34;,&#34;BL&#34;,&#34;SH&#34;,&#34;AR&#34;,&#34;AI&#34;,&#34;SG&#34;,&#34;GR&#34;,&#34;AG&#34;,&#34;TG&#34;,&#34;TI&#34;,&#34;VD&#34;,&#34;VS&#34;,&#34;NE&#34;,&#34;GE&#34;,&#34;JU&#34;],[&#34;Zürich&#34;,&#34;Bern&#34;,&#34;Luzern&#34;,&#34;Uri&#34;,&#34;Schwyz&#34;,&#34;Obwalden&#34;,&#34;Nidwalden&#34;,&#34;Glarus&#34;,&#34;Zug&#34;,&#34;Fribourg&#34;,&#34;Solothurn&#34;,&#34;Basel-Stadt&#34;,&#34;Basel-Landschaft&#34;,&#34;Schaffhausen&#34;,&#34;Appenzell Ausserrhoden&#34;,&#34;Appenzell Innerrhoden&#34;,&#34;St. Gallen&#34;,&#34;Graubünden&#34;,&#34;Aargau&#34;,&#34;Thurgau&#34;,&#34;Ticino&#34;,&#34;Vaud&#34;,&#34;Valais&#34;,&#34;Neuchâtel&#34;,&#34;Geneva&#34;,&#34;Jura&#34;],[1463459,1017483,398762,35973,154093,37076,42420,40028,122134,307461,266418,198290,285094,79836,54543,15974,499065,196610,653675,267429,351946,773407,335696,178107,484736,72782]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;Code&lt;\/th&gt;\n      &lt;th&gt;Canton&lt;\/th&gt;\n      &lt;th&gt;Population&lt;\/th&gt;\n    &lt;\/tr&gt;\n  &lt;\/thead&gt;\n&lt;\/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:2}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-1&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 1 : Subset of wikipedia data for cantons.&lt;\/caption&gt;&#34;,&#34;data&#34;:[[&#34;ZH&#34;,&#34;BE&#34;,&#34;LU&#34;,&#34;UR&#34;,&#34;SZ&#34;,&#34;OW&#34;,&#34;NW&#34;,&#34;GL&#34;,&#34;ZG&#34;,&#34;FR&#34;,&#34;SO&#34;,&#34;BS&#34;,&#34;BL&#34;,&#34;SH&#34;,&#34;AR&#34;,&#34;AI&#34;,&#34;SG&#34;,&#34;GR&#34;,&#34;AG&#34;,&#34;TG&#34;,&#34;TI&#34;,&#34;VD&#34;,&#34;VS&#34;,&#34;NE&#34;,&#34;GE&#34;,&#34;JU&#34;],[&#34;Zürich&#34;,&#34;Bern&#34;,&#34;Luzern&#34;,&#34;Uri&#34;,&#34;Schwyz&#34;,&#34;Obwalden&#34;,&#34;Nidwalden&#34;,&#34;Glarus&#34;,&#34;Zug&#34;,&#34;Fribourg&#34;,&#34;Solothurn&#34;,&#34;Basel-Stadt&#34;,&#34;Basel-Landschaft&#34;,&#34;Schaffhausen&#34;,&#34;Appenzell Ausserrhoden&#34;,&#34;Appenzell Innerrhoden&#34;,&#34;St. Gallen&#34;,&#34;Graubünden&#34;,&#34;Aargau&#34;,&#34;Thurgau&#34;,&#34;Ticino&#34;,&#34;Vaud&#34;,&#34;Valais&#34;,&#34;Neuchâtel&#34;,&#34;Geneva&#34;,&#34;Jura&#34;],[1487969,1026513,403397,36145,155863,37378,42556,40147,123948,311914,269441,198249,286848,80769,54954,16003,502552,197550,663462,270709,354375,784822,339176,178567,489524,73122]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;Code&lt;\/th&gt;\n      &lt;th&gt;Canton&lt;\/th&gt;\n      &lt;th&gt;Population&lt;\/th&gt;\n    &lt;\/tr&gt;\n  &lt;\/thead&gt;\n&lt;\/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:2}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
 &lt;p&gt;We can now try the &lt;code&gt;cantonbins&lt;/code&gt; function.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;cantonbins(density, canton_col=&amp;quot;Code&amp;quot;, value_col=&amp;quot;Population&amp;quot;,
            plot_title=&amp;quot;Population size in Swiss Cantons&amp;quot;,
@@ -343,25 +364,25 @@ offers_urls &amp;lt;- offers %&amp;gt;%
   html_attr(&amp;quot;href&amp;quot;)
 
 head(offers_urls)&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;/en/apartments-for-rent/paquis-2-rooms--2454.44.0030&amp;quot;          
-## [2] &amp;quot;/en/apartments-for-rent/plainpalais-2-rooms--2040.41.0020&amp;quot;     
-## [3] &amp;quot;/en/apartments-for-rent/saint-jean-3-5-rooms--2066.41.0010&amp;quot;    
-## [4] &amp;quot;/en/apartments-for-rent/grand-pre-3-rooms--0510.45.0030&amp;quot;       
-## [5] &amp;quot;/en/apartments-for-rent/grand-pre-1-5-rooms--2457.41.0020&amp;quot;     
-## [6] &amp;quot;/en/apartments-for-rent/grand-saconnex-2-5-rooms--2018.48.0020&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;/en/apartments-for-rent/servette-2-rooms--0014.45.0020&amp;quot;         
+## [2] &amp;quot;/en/apartments-for-rent/acacias-1-5-rooms--0141.42.0040&amp;quot;        
+## [3] &amp;quot;/en/apartments-for-rent/petit-lancy-1-5-rooms--7124.61.0020&amp;quot;    
+## [4] &amp;quot;/en/apartments-for-rent/servette-2-rooms--2078.40.0030&amp;quot;         
+## [5] &amp;quot;/en/apartments-for-rent/plainpalais-2-rooms--0008.46.0010&amp;quot;      
+## [6] &amp;quot;/en/apartments-for-rent/chene-bougeries-2-5-rooms--0199.41.0010&amp;quot;&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 &lt;div id=&#34;using-one-example-to-map-our-scraping&#34; class=&#34;section level3&#34;&gt;
 &lt;h3&gt;Using one example to map our scraping&lt;/h3&gt;
 &lt;p&gt;Using the first link as an example, we can explore how the data should be scraped.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;offer_url &amp;lt;- offers_urls[1]
 offer_url&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;/en/apartments-for-rent/paquis-2-rooms--2454.44.0030&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;/en/apartments-for-rent/servette-2-rooms--0014.45.0020&amp;quot;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;The id of each offer is actually available directly in the URL.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;id &amp;lt;- offer_url %&amp;gt;%
   sub(&amp;quot;.*([0-9]{4}\\.[0-9]{2}\\.[0-9]{4}).*&amp;quot;,
       &amp;quot;\\1&amp;quot;, .)
 id&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;2454.44.0030&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;0014.45.0020&amp;quot;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Next we need to scrape the data contained at this URL. As links are relative, we start by rebuilding the full link, which we use with &lt;code&gt;xml2::read_html()&lt;/code&gt;.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Create full URL for offer
 BASE_URL &amp;lt;- &amp;quot;https://www.moservernet.ch&amp;quot;
@@ -381,7 +402,7 @@ offer_html &amp;lt;- xml2::read_html(offer_full_url)&lt;/code&gt;&lt;/pre&gt;
   stringr::str_split(&amp;quot; - &amp;quot;, simplify = T) %&amp;gt;%
   as.vector()
 offer_attr&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;2 rooms&amp;quot; &amp;quot;24m²&amp;quot;    &amp;quot;Floor 4&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;2 rooms&amp;quot; &amp;quot;30m²&amp;quot;    &amp;quot;Floor 5&amp;quot;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;With a bit more parsing, we can get clean numbers.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Find floor data by finding the vector element
 # containing text &amp;quot;Floor&amp;quot; and isolating the
@@ -390,7 +411,7 @@ floor &amp;lt;- grep(&amp;quot;Floor&amp;quot;, offer_attr, value = T) %&amp;gt;
   stringr::str_replace(&amp;quot;Floor&amp;quot;,&amp;quot;&amp;quot;) %&amp;gt;%
   stringr::str_trim()
 floor&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;4&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;5&amp;quot;&lt;/code&gt;&lt;/pre&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Find surface area data by finding the vector 
 # element containing text &amp;quot;m²&amp;quot; and isolating the
 # number next to it.
@@ -398,16 +419,16 @@ surface &amp;lt;- grep(&amp;quot;m²&amp;quot;, offer_attr, value = T) %&amp;gt;
   stringr::str_replace(&amp;quot;m²&amp;quot;,&amp;quot;&amp;quot;) %&amp;gt;%
   stringr::str_trim()
 surface&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;24&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;30&amp;quot;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;However, if we look closely at the list of urls, there seem to be two types of URLs.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;table(sub(&amp;quot;(/.*/.*/).*&amp;quot;,&amp;quot;\\1&amp;quot;,offers_urls)) %&amp;gt;%
   tibble::as_tibble() %&amp;gt;%
   setNames(c(&amp;quot;URL start with:&amp;quot;,&amp;quot;n&amp;quot;)) &lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## # A tibble: 2 × 2
+&lt;pre&gt;&lt;code&gt;## # A tibble: 2 x 2
 ##                    `URL start with:`     n
 ##                                &amp;lt;chr&amp;gt; &amp;lt;int&amp;gt;
-## 1           /en/apartments-for-rent/    21
-## 2 /en/residential-property-for-rent/     7&lt;/code&gt;&lt;/pre&gt;
+## 1           /en/apartments-for-rent/    27
+## 2 /en/residential-property-for-rent/     6&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Most URLs follow the pattern &lt;code&gt;/en/apartments-for-rent/&amp;lt;address&amp;gt;--&amp;lt;id&amp;gt;&lt;/code&gt; but a few look like &lt;code&gt;/en/residential-property-for-rent/&amp;lt;address&amp;gt;--&amp;lt;id&amp;gt;&lt;/code&gt;. If we open one, we can see that the page layout is different.&lt;/p&gt;
 &lt;div class=&#34;figure&#34;&gt;
 &lt;img src=&#34;../../img/1704161-scrsh-msrvrn-property-source.png&#34; alt=&#34;Screenshot of source code for residential detail webpage&#34; /&gt;
@@ -595,12 +616,12 @@ listing_html&lt;/code&gt;&lt;/pre&gt;
   rvest::html_nodes(&amp;quot;#offers .offer&amp;quot;)
 head(listing_offers)&lt;/code&gt;&lt;/pre&gt;
 &lt;pre&gt;&lt;code&gt;## {xml_nodeset (6)}
-## [1] &amp;lt;div class=&amp;quot;offer cat2 cat3 1&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...
-## [2] &amp;lt;div class=&amp;quot;offer cat2 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-for-re ...
-## [3] &amp;lt;div class=&amp;quot;offer cat3 cat4 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...
-## [4] &amp;lt;div class=&amp;quot;offer cat3 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-for-re ...
-## [5] &amp;lt;div class=&amp;quot;offer cat1 cat2 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...
-## [6] &amp;lt;div class=&amp;quot;offer cat2 cat3 3&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...&lt;/code&gt;&lt;/pre&gt;
+## [1] &amp;lt;div class=&amp;quot;offer cat2 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-for-re ...
+## [2] &amp;lt;div class=&amp;quot;offer cat1 cat2 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...
+## [3] &amp;lt;div class=&amp;quot;offer cat1 cat2 1&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...
+## [4] &amp;lt;div class=&amp;quot;offer cat2 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-for-re ...
+## [5] &amp;lt;div class=&amp;quot;offer cat2 2&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-for-re ...
+## [6] &amp;lt;div class=&amp;quot;offer cat2 cat3 1&amp;quot;&amp;gt;\n\t\t\t\t\t&amp;lt;a href=&amp;quot;/en/apartments-f ...&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 &lt;div id=&#34;parsing-the-offers&#34; class=&#34;section level3&#34;&gt;
 &lt;h3&gt;Parsing the offers&lt;/h3&gt;
@@ -665,7 +686,7 @@ DT::datatable(
   rownames = FALSE,
   caption = &amp;quot;Table 1 : Offers scraped using the field centric way&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
 &lt;div id=&#34;htmlwidget-1&#34; style=&#34;width:100%;height:auto;&#34; class=&#34;datatables html-widget&#34;&gt;&lt;/div&gt;
-&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-1&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 1 : Offers scraped using the field centric way&lt;\/caption&gt;&#34;,&#34;data&#34;:[[&#34;0033.41.0030&#34;,&#34;2040.41.0020&#34;,&#34;2066.41.0010&#34;,&#34;0510.45.0030&#34;,&#34;2457.41.0020&#34;,&#34;2018.48.0020&#34;,&#34;2020.47.0020&#34;,&#34;2190.44.0030&#34;,&#34;0577.43.0340&#34;,&#34;0090.45.0040&#34;,&#34;0108.43.0020&#34;,&#34;0022.42.0010&#34;,&#34;0033.45.0020&#34;,&#34;0138.40.0020&#34;,&#34;0690.41.0020&#34;,&#34;2062.43.0050&#34;,&#34;0571.43.0040&#34;,&#34;0022.40.0010&#34;,&#34;0022.43.0010&#34;,&#34;0082.44.0030&#34;,&#34;0569.42.0210&#34;,&#34;2581.43.0010&#34;,&#34;0695.42.0010&#34;,&#34;0615.45.0010&#34;,&#34;0294.43.0020&#34;,&#34;2027.46.0060&#34;,&#34;0579.51.0010&#34;],[2.5,2,3.5,3,1.5,2.5,2.5,1,3.5,3.5,4.5,3.5,4.5,3.5,4.5,4,4.5,4.5,4,3,5.5,5.5,6,6,7.5,6,6.5],[&#34;Avenue des Cavaliers 13&#34;,&#34;Rue Henri-ChristinÃ© 6&#34;,&#34;Rue du BelvÃ©dÃ¨re 9&#34;,&#34;Rue Chandieu 1&#34;,&#34;Rue du Vidollet 11&#34;,&#34;Chemin Taverney 6&#34;,&#34;Chemin Taverney 10&#34;,&#34;Grand-Rue 10&#34;,&#34;Chemin de Maisonneuve 12 B&#34;,&#34;Rue de la DÃ´le 12&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue Michel-Chauvet 4&#34;,&#34;Chemin de Castelver 10&#34;,&#34;Rue Lamartine 24 B&#34;,&#34;Rue de la Faucille 14&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Rue du Fort-Barreau 13&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;,&#34;Chemin de Beau-Soleil 5&#34;],[46.2024683,46.1945565,46.2049981,46.2158774,46.2159927,46.2299972,46.2297057,46.20209,46.2122871,46.2076048,46.1750094,46.2167452,46.2024683,46.1982716,46.1655653,46.2111247,46.2112803,46.2167452,46.2167452,46.1976599,46.2113528,46.1792898,46.2043919,46.2001689,46.1818628,46.2061894,46.1879451],[6.1840869,6.1424891,6.1311477,6.1344373,6.1381931,6.1177381,6.118199,6.1451254,6.1143063,6.13172,6.1193707,6.1316818,6.1840869,6.1565411,6.1866597,6.1295749,6.1399257,6.1316818,6.1316818,6.1462625,6.1407533,6.1479551,6.1308513,6.1723494,6.1401097,6.1306914,6.1598356],[1220,1250,1350,1500,1500,1580,1580,1600,1670,1750,2100,2160,2200,2300,2360,2400,2800,3030,3117,3200,3350,3500,4200,4500,4900,5050,6500],[95,85,null,120,70,90,90,100,165,145,170,160,205,155,140,180,170,200,220,150,197,200,265,350,350,350,385]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;id&lt;\/th&gt;\n      &lt;th&gt;rooms&lt;\/th&gt;\n      &lt;th&gt;address&lt;\/th&gt;\n      &lt;th&gt;latitude&lt;\/th&gt;\n      &lt;th&gt;longitude&lt;\/th&gt;\n      &lt;th&gt;rent&lt;\/th&gt;\n      &lt;th&gt;charges&lt;\/th&gt;\n    &lt;\/tr&gt;\n  &lt;\/thead&gt;\n&lt;\/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:[1,3,4,5,6]}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-1&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 1 : Offers scraped using the field centric way&lt;\/caption&gt;&#34;,&#34;data&#34;:[[&#34;0014.45.0020&#34;,&#34;0141.42.0040&#34;,&#34;7124.61.0020&#34;,&#34;2078.40.0030&#34;,&#34;0008.46.0010&#34;,&#34;0199.41.0010&#34;,&#34;2108.44.0040&#34;,&#34;0631.45.0030&#34;,&#34;2121.48.0820&#34;,&#34;0090.42.0020&#34;,&#34;2117.48.0020&#34;,&#34;0118.46.0010&#34;,&#34;2040.41.0010&#34;,&#34;0104.42.0020&#34;,&#34;0148.43.0030&#34;,&#34;0022.42.0010&#34;,&#34;0575.44.0020&#34;,&#34;0192.44.0030&#34;,&#34;0574.46.0020&#34;,&#34;0198.46.0020&#34;,&#34;0523.46.0010&#34;,&#34;2573.41.0010&#34;,&#34;0158.46.0020&#34;,&#34;0082.44.0030&#34;,&#34;2143.41.0020&#34;,&#34;2341.45.0010&#34;,&#34;0022.40.0010&#34;,&#34;0533.42.0010&#34;,&#34;2233.39.9030&#34;,&#34;0615.45.0010&#34;,&#34;2027.46.0060&#34;,&#34;0082.44.0010&#34;],[2,1.5,1.5,2,2,2.5,3,4,3.5,4.5,3,4,3.5,4.5,4,3.5,4.5,5,4.5,5.5,3.5,4,5.5,3,6,4.5,4.5,4.5,6,6,6,6],[&#34;Rue Hoffmann 7&#34;,&#34;Rue Caroline 49&#34;,&#34;Rue des Bossons 78&#34;,&#34;Avenue De-Luserna 36&#34;,&#34;Rue du Vieux-Billard 2&#34;,&#34;Chemin de la Fontaine 2&#34;,&#34;Rue Emile-Nicolet 9&#34;,&#34;Route de Mon-IdÃ©e 61&#34;,&#34;Grand-Montfleury 36&#34;,&#34;Rue de la DÃ´le 12&#34;,&#34;Rue Crespin 12&#34;,&#34;Chemin des Palettes 1 bis&#34;,&#34;Rue Henri-ChristinÃ© 6&#34;,&#34;Chemin des Palettes 19&#34;,&#34;Avenue Bois-de-la-Chapelle 43&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Grand-Montfleury 30&#34;,&#34;Rue Jean-Violette 1&#34;,&#34;Grand-Montfleury 28&#34;,&#34;Rue de ChÃªne-Bougeries 29&#34;,&#34;Rue du Grand-PrÃ© 47&#34;,&#34;Avenue de la Grenade 8&#34;,&#34;Chemin des Palettes 29&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Chemin De-Sales 15 B&#34;,&#34;Rue Cavour 9&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 3&#34;,&#34;Rue Maurice-Braillard 16&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Charles-Giron 1&#34;,&#34;Rue Saint-LÃ©ger 8&#34;],[46.2149887,46.188097,46.1887366,46.2139829,46.200344,46.1966788,46.2018166,46.2077027,46.2939732,46.2076048,46.1952275,46.1754372,46.1945565,46.1752465,46.1899837,46.2167452,46.2936297,46.1941321,46.2936467,46.1964161,46.2149022,46.2059436,46.1754533,46.1976599,46.2141329,46.2068797,46.2167452,46.1973266,46.220471,46.2001689,46.2061894,46.1976599],[6.1299484,6.1386259,6.1106068,6.1246849,6.1394742,6.1910831,6.1283347,6.2175542,6.1654268,6.13172,6.1590552,6.122095,6.1424891,6.120414,6.1051334,6.1316818,6.1646624,6.14382,6.1644367,6.190808,6.133359,6.1602677,6.11947,6.1462625,6.0886132,6.1320354,6.1316818,6.1452239,6.1325586,6.1723494,6.1306914,6.1462625],[850,907,1020,1220,1400,1450,1550,1620,1650,1900,1900,1910,1990,2050,2100,2160,2230,2300,2394,2450,2520,2671,2700,2925,2980,2980,3030,3350,3900,4500,4900,10900],[100,90,80,80,110,100,null,160,125,170,90,165,130,155,160,160,165,200,166,210,145,160,170,175,270,220,200,200,365,350,350,445]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;id&lt;\/th&gt;\n      &lt;th&gt;rooms&lt;\/th&gt;\n      &lt;th&gt;address&lt;\/th&gt;\n      &lt;th&gt;latitude&lt;\/th&gt;\n      &lt;th&gt;longitude&lt;\/th&gt;\n      &lt;th&gt;rent&lt;\/th&gt;\n      &lt;th&gt;charges&lt;\/th&gt;\n    &lt;\/tr&gt;\n  &lt;\/thead&gt;\n&lt;\/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:[1,3,4,5,6]}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
 &lt;/div&gt;
 &lt;div id=&#34;parsing-with-the-offer-centric-way&#34; class=&#34;section level4&#34;&gt;
 &lt;h4&gt;Parsing with the “offer centric” way&lt;/h4&gt;
@@ -730,7 +751,7 @@ DT::datatable(
   rownames = FALSE,
   caption = &amp;quot;Table 2 : Offers scraped using the offer centric way&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
 &lt;div id=&#34;htmlwidget-2&#34; style=&#34;width:100%;height:auto;&#34; class=&#34;datatables html-widget&#34;&gt;&lt;/div&gt;
-&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-2&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 2 : Offers scraped using the offer centric way&lt;\/caption&gt;&#34;,&#34;data&#34;:[[&#34;0033.41.0030&#34;,&#34;2040.41.0020&#34;,&#34;0510.45.0030&#34;,&#34;2457.41.0020&#34;,&#34;2018.48.0020&#34;,&#34;2020.47.0020&#34;,&#34;2190.44.0030&#34;,&#34;0577.43.0340&#34;,&#34;0090.45.0040&#34;,&#34;0108.43.0020&#34;,&#34;0022.42.0010&#34;,&#34;0033.45.0020&#34;,&#34;0138.40.0020&#34;,&#34;0690.41.0020&#34;,&#34;2062.43.0050&#34;,&#34;0571.43.0040&#34;,&#34;0022.40.0010&#34;,&#34;0022.43.0010&#34;,&#34;0082.44.0030&#34;,&#34;0569.42.0210&#34;,&#34;2581.43.0010&#34;,&#34;0695.42.0010&#34;,&#34;0615.45.0010&#34;,&#34;0294.43.0020&#34;,&#34;2027.46.0060&#34;,&#34;0579.51.0010&#34;],[&#34;Avenue des Cavaliers 13&#34;,&#34;Rue Henri-ChristinÃ© 6&#34;,&#34;Rue Chandieu 1&#34;,&#34;Rue du Vidollet 11&#34;,&#34;Chemin Taverney 6&#34;,&#34;Chemin Taverney 10&#34;,&#34;Grand-Rue 10&#34;,&#34;Chemin de Maisonneuve 12 B&#34;,&#34;Rue de la DÃ´le 12&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue Michel-Chauvet 4&#34;,&#34;Chemin de Castelver 10&#34;,&#34;Rue Lamartine 24 B&#34;,&#34;Rue de la Faucille 14&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Rue du Fort-Barreau 13&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;,&#34;Chemin de Beau-Soleil 5&#34;],[2.5,2,3,1.5,2.5,2.5,1,3.5,3.5,4.5,3.5,4.5,3.5,4.5,4,4.5,4.5,4,3,5.5,5.5,6,6,7.5,6,6.5],[46.2024683,46.1945565,46.2158774,46.2159927,46.2299972,46.2297057,46.20209,46.2122871,46.2076048,46.1750094,46.2167452,46.2024683,46.1982716,46.1655653,46.2111247,46.2112803,46.2167452,46.2167452,46.1976599,46.2113528,46.1792898,46.2043919,46.2001689,46.1818628,46.2061894,46.1879451],[6.1840869,6.1424891,6.1344373,6.1381931,6.1177381,6.118199,6.1451254,6.1143063,6.13172,6.1193707,6.1316818,6.1840869,6.1565411,6.1866597,6.1295749,6.1399257,6.1316818,6.1316818,6.1462625,6.1407533,6.1479551,6.1308513,6.1723494,6.1401097,6.1306914,6.1598356],[1220,1250,1500,1500,1580,1580,1600,1670,1750,2100,2160,2200,2300,2360,2400,2800,3030,3117,3200,3350,3500,4200,4500,4900,5050,6500],[95,85,120,70,90,90,100,165,145,170,160,205,155,140,180,170,200,220,150,197,200,265,350,350,350,385]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;id&lt;\/th&gt;\n      &lt;th&gt;address&lt;\/th&gt;\n      &lt;th&gt;room&lt;\/th&gt;\n      &lt;th&gt;latitude&lt;\/th&gt;\n      &lt;th&gt;longitude&lt;\/th&gt;\n      &lt;th&gt;rent&lt;\/th&gt;\n      &lt;th&gt;charges&lt;\/th&gt;\n    &lt;\/tr&gt;\n  &lt;\/thead&gt;\n&lt;\/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:[2,3,4,5,6]}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-2&#34;&gt;{&#34;x&#34;:{&#34;filter&#34;:&#34;none&#34;,&#34;caption&#34;:&#34;&lt;caption&gt;Table 2 : Offers scraped using the offer centric way&lt;\/caption&gt;&#34;,&#34;data&#34;:[[&#34;0014.45.0020&#34;,&#34;0141.42.0040&#34;,&#34;7124.61.0020&#34;,&#34;2078.40.0030&#34;,&#34;0008.46.0010&#34;,&#34;0199.41.0010&#34;,&#34;0631.45.0030&#34;,&#34;2121.48.0820&#34;,&#34;0090.42.0020&#34;,&#34;2117.48.0020&#34;,&#34;0118.46.0010&#34;,&#34;2040.41.0010&#34;,&#34;0104.42.0020&#34;,&#34;0148.43.0030&#34;,&#34;0022.42.0010&#34;,&#34;0575.44.0020&#34;,&#34;0192.44.0030&#34;,&#34;0574.46.0020&#34;,&#34;0198.46.0020&#34;,&#34;0523.46.0010&#34;,&#34;2573.41.0010&#34;,&#34;0158.46.0020&#34;,&#34;0082.44.0030&#34;,&#34;2143.41.0020&#34;,&#34;2341.45.0010&#34;,&#34;0022.40.0010&#34;,&#34;0533.42.0010&#34;,&#34;2233.39.9030&#34;,&#34;0615.45.0010&#34;,&#34;2027.46.0060&#34;,&#34;0082.44.0010&#34;],[&#34;Rue Hoffmann 7&#34;,&#34;Rue Caroline 49&#34;,&#34;Rue des Bossons 78&#34;,&#34;Avenue De-Luserna 36&#34;,&#34;Rue du Vieux-Billard 2&#34;,&#34;Chemin de la Fontaine 2&#34;,&#34;Route de Mon-IdÃ©e 61&#34;,&#34;Grand-Montfleury 36&#34;,&#34;Rue de la DÃ´le 12&#34;,&#34;Rue Crespin 12&#34;,&#34;Chemin des Palettes 1 bis&#34;,&#34;Rue Henri-ChristinÃ© 6&#34;,&#34;Chemin des Palettes 19&#34;,&#34;Avenue Bois-de-la-Chapelle 43&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Grand-Montfleury 30&#34;,&#34;Rue Jean-Violette 1&#34;,&#34;Grand-Montfleury 28&#34;,&#34;Rue de ChÃªne-Bougeries 29&#34;,&#34;Rue du Grand-PrÃ© 47&#34;,&#34;Avenue de la Grenade 8&#34;,&#34;Chemin des Palettes 29&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Chemin De-Sales 15 B&#34;,&#34;Rue Cavour 9&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 3&#34;,&#34;Rue Maurice-Braillard 16&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Charles-Giron 1&#34;,&#34;Rue Saint-LÃ©ger 8&#34;],[2,1.5,1.5,2,2,2.5,4,3.5,4.5,3,4,3.5,4.5,4,3.5,4.5,5,4.5,5.5,3.5,4,5.5,3,6,4.5,4.5,4.5,6,6,6,6],[46.2149887,46.188097,46.1887366,46.2139829,46.200344,46.1966788,46.2077027,46.2939732,46.2076048,46.1952275,46.1754372,46.1945565,46.1752465,46.1899837,46.2167452,46.2936297,46.1941321,46.2936467,46.1964161,46.2149022,46.2059436,46.1754533,46.1976599,46.2141329,46.2068797,46.2167452,46.1973266,46.220471,46.2001689,46.2061894,46.1976599],[6.1299484,6.1386259,6.1106068,6.1246849,6.1394742,6.1910831,6.2175542,6.1654268,6.13172,6.1590552,6.122095,6.1424891,6.120414,6.1051334,6.1316818,6.1646624,6.14382,6.1644367,6.190808,6.133359,6.1602677,6.11947,6.1462625,6.0886132,6.1320354,6.1316818,6.1452239,6.1325586,6.1723494,6.1306914,6.1462625],[850,907,1020,1220,1400,1450,1620,1650,1900,1900,1910,1990,2050,2100,2160,2230,2300,2394,2450,2520,2671,2700,2925,2980,2980,3030,3350,3900,4500,4900,10900],[100,90,80,80,110,100,160,125,170,90,165,130,155,160,160,165,200,166,210,145,160,170,175,270,220,200,200,365,350,350,445]],&#34;container&#34;:&#34;&lt;table class=\&#34;display\&#34;&gt;\n  &lt;thead&gt;\n    &lt;tr&gt;\n      &lt;th&gt;id&lt;\/th&gt;\n      &lt;th&gt;address&lt;\/th&gt;\n      &lt;th&gt;room&lt;\/th&gt;\n      &lt;th&gt;latitude&lt;\/th&gt;\n      &lt;th&gt;longitude&lt;\/th&gt;\n      &lt;th&gt;rent&lt;\/th&gt;\n      &lt;th&gt;charges&lt;\/th&gt;\n    &lt;\/tr&gt;\n  &lt;\/thead&gt;\n&lt;\/table&gt;&#34;,&#34;options&#34;:{&#34;pageLength&#34;:5,&#34;dom&#34;:&#34;tpi&#34;,&#34;columnDefs&#34;:[{&#34;className&#34;:&#34;dt-right&#34;,&#34;targets&#34;:[2,3,4,5,6]}],&#34;order&#34;:[],&#34;autoWidth&#34;:false,&#34;orderClasses&#34;:false,&#34;lengthMenu&#34;:[5,10,25,50,100]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
@@ -765,7 +786,7 @@ m &amp;lt;- leaflet(offers) %&amp;gt;%
              popup=offers$address)
 m&lt;/code&gt;&lt;/pre&gt;
 &lt;div id=&#34;htmlwidget-3&#34; style=&#34;width:672px;height:480px;&#34; class=&#34;leaflet html-widget&#34;&gt;&lt;/div&gt;
-&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-3&#34;&gt;{&#34;x&#34;:{&#34;options&#34;:{&#34;crs&#34;:{&#34;crsClass&#34;:&#34;L.CRS.EPSG3857&#34;,&#34;code&#34;:null,&#34;proj4def&#34;:null,&#34;projectedBounds&#34;:null,&#34;options&#34;:{}}},&#34;calls&#34;:[{&#34;method&#34;:&#34;addProviderTiles&#34;,&#34;args&#34;:[&#34;CartoDB.Positron&#34;,null,null,{&#34;errorTileUrl&#34;:&#34;&#34;,&#34;noWrap&#34;:false,&#34;zIndex&#34;:null,&#34;unloadInvisibleTiles&#34;:null,&#34;updateWhenIdle&#34;:null,&#34;detectRetina&#34;:false,&#34;reuseTiles&#34;:false}]},{&#34;method&#34;:&#34;addMarkers&#34;,&#34;args&#34;:[[46.2024683,46.1945565,46.2158774,46.2159927,46.2299972,46.2297057,46.20209,46.2122871,46.2076048,46.1750094,46.2167452,46.2024683,46.1982716,46.1655653,46.2111247,46.2112803,46.2167452,46.2167452,46.1976599,46.2113528,46.1792898,46.2043919,46.2001689,46.1818628,46.2061894,46.1879451],[6.1840869,6.1424891,6.1344373,6.1381931,6.1177381,6.118199,6.1451254,6.1143063,6.13172,6.1193707,6.1316818,6.1840869,6.1565411,6.1866597,6.1295749,6.1399257,6.1316818,6.1316818,6.1462625,6.1407533,6.1479551,6.1308513,6.1723494,6.1401097,6.1306914,6.1598356],null,null,null,{&#34;clickable&#34;:true,&#34;draggable&#34;:false,&#34;keyboard&#34;:true,&#34;title&#34;:&#34;&#34;,&#34;alt&#34;:&#34;&#34;,&#34;zIndexOffset&#34;:0,&#34;opacity&#34;:1,&#34;riseOnHover&#34;:false,&#34;riseOffset&#34;:250},[&#34;Avenue des Cavaliers 13&#34;,&#34;Rue Henri-ChristinÃ© 6&#34;,&#34;Rue Chandieu 1&#34;,&#34;Rue du Vidollet 11&#34;,&#34;Chemin Taverney 6&#34;,&#34;Chemin Taverney 10&#34;,&#34;Grand-Rue 10&#34;,&#34;Chemin de Maisonneuve 12 B&#34;,&#34;Rue de la DÃ´le 12&#34;,&#34;Chemin des Palettes 33&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue des Cavaliers 13&#34;,&#34;Rue Michel-Chauvet 4&#34;,&#34;Chemin de Castelver 10&#34;,&#34;Rue Lamartine 24 B&#34;,&#34;Rue de la Faucille 14&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Rue du Fort-Barreau 13&#34;,&#34;Chemin Charles-Poluzzi 29&#34;,&#34;Rue du ChÃ¢teau 2&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Jacques-Dalphin 37&#34;,&#34;Rue Charles-Giron 1&#34;,&#34;Chemin de Beau-Soleil 5&#34;],null,null,null,null,null,null]}],&#34;limits&#34;:{&#34;lat&#34;:[46.1655653,46.2299972],&#34;lng&#34;:[6.1143063,6.1866597]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
+&lt;script type=&#34;application/json&#34; data-for=&#34;htmlwidget-3&#34;&gt;{&#34;x&#34;:{&#34;options&#34;:{&#34;crs&#34;:{&#34;crsClass&#34;:&#34;L.CRS.EPSG3857&#34;,&#34;code&#34;:null,&#34;proj4def&#34;:null,&#34;projectedBounds&#34;:null,&#34;options&#34;:{}}},&#34;calls&#34;:[{&#34;method&#34;:&#34;addProviderTiles&#34;,&#34;args&#34;:[&#34;CartoDB.Positron&#34;,null,null,{&#34;errorTileUrl&#34;:&#34;&#34;,&#34;noWrap&#34;:false,&#34;zIndex&#34;:null,&#34;unloadInvisibleTiles&#34;:null,&#34;updateWhenIdle&#34;:null,&#34;detectRetina&#34;:false,&#34;reuseTiles&#34;:false}]},{&#34;method&#34;:&#34;addMarkers&#34;,&#34;args&#34;:[[46.2149887,46.188097,46.1887366,46.2139829,46.200344,46.1966788,46.2077027,46.2939732,46.2076048,46.1952275,46.1754372,46.1945565,46.1752465,46.1899837,46.2167452,46.2936297,46.1941321,46.2936467,46.1964161,46.2149022,46.2059436,46.1754533,46.1976599,46.2141329,46.2068797,46.2167452,46.1973266,46.220471,46.2001689,46.2061894,46.1976599],[6.1299484,6.1386259,6.1106068,6.1246849,6.1394742,6.1910831,6.2175542,6.1654268,6.13172,6.1590552,6.122095,6.1424891,6.120414,6.1051334,6.1316818,6.1646624,6.14382,6.1644367,6.190808,6.133359,6.1602677,6.11947,6.1462625,6.0886132,6.1320354,6.1316818,6.1452239,6.1325586,6.1723494,6.1306914,6.1462625],null,null,null,{&#34;clickable&#34;:true,&#34;draggable&#34;:false,&#34;keyboard&#34;:true,&#34;title&#34;:&#34;&#34;,&#34;alt&#34;:&#34;&#34;,&#34;zIndexOffset&#34;:0,&#34;opacity&#34;:1,&#34;riseOnHover&#34;:false,&#34;riseOffset&#34;:250},[&#34;Rue Hoffmann 7&#34;,&#34;Rue Caroline 49&#34;,&#34;Rue des Bossons 78&#34;,&#34;Avenue De-Luserna 36&#34;,&#34;Rue du Vieux-Billard 2&#34;,&#34;Chemin de la Fontaine 2&#34;,&#34;Route de Mon-IdÃ©e 61&#34;,&#34;Grand-Montfleury 36&#34;,&#34;Rue de la DÃ´le 12&#34;,&#34;Rue Crespin 12&#34;,&#34;Chemin des Palettes 1 bis&#34;,&#34;Rue Henri-ChristinÃ© 6&#34;,&#34;Chemin des Palettes 19&#34;,&#34;Avenue Bois-de-la-Chapelle 43&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Grand-Montfleury 30&#34;,&#34;Rue Jean-Violette 1&#34;,&#34;Grand-Montfleury 28&#34;,&#34;Rue de ChÃªne-Bougeries 29&#34;,&#34;Rue du Grand-PrÃ© 47&#34;,&#34;Avenue de la Grenade 8&#34;,&#34;Chemin des Palettes 29&#34;,&#34;Rue Saint-LÃ©ger 8&#34;,&#34;Chemin De-Sales 15 B&#34;,&#34;Rue Cavour 9&#34;,&#34;Avenue Giuseppe-Motta 16&#34;,&#34;Rue Saint-LÃ©ger 3&#34;,&#34;Rue Maurice-Braillard 16&#34;,&#34;Route de ChÃªne 53&#34;,&#34;Rue Charles-Giron 1&#34;,&#34;Rue Saint-LÃ©ger 8&#34;],null,null,null,null,null,null]}],&#34;limits&#34;:{&#34;lat&#34;:[46.1752465,46.2939732],&#34;lng&#34;:[6.0886132,6.2175542]}},&#34;evals&#34;:[],&#34;jsHooks&#34;:[]}&lt;/script&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div id=&#34;ressources&#34; class=&#34;section level2&#34;&gt;

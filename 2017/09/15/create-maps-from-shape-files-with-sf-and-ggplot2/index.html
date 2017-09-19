@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.18.1" />
+
+
+<title>Create maps from SHAPE files with sf and ggplot2 - Invalid Input</title>
+<meta property="og:title" content="Create maps from SHAPE files with sf and ggplot2 - Invalid Input">
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="../../../../css/fonts.css" media="all">
+<link rel="stylesheet" href="../../../../css/main.css" media="all">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Ubuntu+Mono:400,400i,700,700i">
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="../../../../" class="nav-logo">
+    <img src="../../../../images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="../../../../about/">About</a></li>
+    
+    <li><a href="https://github.com/xvrdm">GitHub</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">15 min read</span>
+    
+
+    <h1 class="article-title">Create maps from SHAPE files with sf and ggplot2</h1>
+
+    
+    <span class="article-date">2017/09/15</span>
+    
+
+    <div class="article-content">
+      <div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>In Geneva (Switzerland), we are lucky to have <a href="http://ge.ch/sitg/sitg_catalog/sitg_donnees?keyword&amp;distribution=3&amp;datatype=tous&amp;topic=tous&amp;service=tous">SITG</a>, a website with tons of geographical open datasets. I wanted to try my hand at doing maps in R for some time now, but could not find a way that felt integrated with the other packages I usually work with. Importing <a href="https://en.wikipedia.org/wiki/Shapefile"><code>.sh</code></a> files was a challenge (for me), as well as plotting the data in <a href="http://ggplot2.tidyverse.org/"><code>ggplot2</code></a> rather than with a dedicated map library like <a href="https://cran.r-project.org/web/packages/tmap/vignettes/tmap-nutshell.html"><code>tmap</code></a>.</p>
+<p>All that changed with <a href="http://r-spatial.github.io/sf/"><code>sf</code></a>, a package that implements <a href="https://en.wikipedia.org/wiki/Simple_Features">Simple Features</a> for R. As I know nothing about geographic information systems, all I can say is: if you are already using the <a href="https://www.tidyverse.org/"><code>tidyverse</code></a>, <code>sf</code> makes it really straightforward to convert geographical datasets to <code>data.frames/tibbles</code> that you can then manipulate with the ease of your usual toolbox (<code>dplyr</code>, <code>tidyr</code>…).</p>
+<p>As I walked around Geneva countryside, I stumbled upon a <a href="https://www.google.ch/maps/@46.1683766,6.068557,3a,75y,96.05h,82.7t/data=!3m8!1e1!3m6!1sAF1QipM5sKEBi_Ci70-Tl8I8cabW9Tu2rFtkiXDWLGUU!2e10!3e11!6shttps:%2F%2Flh5.googleusercontent.com%2Fp%2FAF1QipM5sKEBi_Ci70-Tl8I8cabW9Tu2rFtkiXDWLGUU%3Dw203-h100-k-no-pi-0-ya8.500008-ro-0-fo100!7i8704!8i4352?hl=en">point of view</a> with several information boards. One showed a little map that I thought would make a good first example.</p>
+<div class="figure">
+<img src="" />
+
+</div>
+<p>Thinking in layers - like always with <code>ggplot2</code> - it looks like we need the following things: 1. borders of each communal districts in Geneva 2. borders of water (lake and main rivers) 3. areas of buildings 4. areas of forests</p>
+</div>
+<div id="installing-sf" class="section level2">
+<h2>Installing <code>sf</code></h2>
+<p>If you already have all dependencies, it might be as straightforward as installing the package <code>sf</code>. On Ubuntu, it was a bit of a pain, especially because I did not read the <a href="https://github.com/r-spatial/sf#linux">instructions first</a>. After adding <code>libpng-dev</code> on top of the other libraries, the <code>sf</code> install worked in RStudio.</p>
+</div>
+<div id="mapping-communal-districts" class="section level2">
+<h2>Mapping communal districts</h2>
+<p>The polygons of all Geneva communal districts are available <a href="http://ge.ch/sitg/sitg_catalog/sitg_donnees?keyword=COMMUNES%20GENEVOISES%20%28GEOMETRIE%20SIMPLIFIEE%29&amp;topic=tous&amp;service=tous&amp;datatype=tous&amp;distribution=3&amp;sort=auto">here, named ‘COMMUNES GENEVOISES (GEOMETRIE SIMPLIFIEE)’</a>)“. I downloaded the <code>SHP</code> version. Make sure you place all the files (not just the <code>.shp</code> and <code>.shx</code>) in the same directory.<code>.shp</code> and <code>.shx</code> are enough to get the polygones, but you would miss all the metadata (like the names of the communes). Using <code>sf</code> function <code>st_read</code>, we can import them into R.</p>
+<pre class="r"><code># Load sf and dplyr quietly
+suppressMessages(library(sf))
+suppressMessages(library(dplyr))
+
+# Load the communes dataset
+communes  &lt;- st_read(&quot;../data/GEO_COMMUNES_GE_SIMPLIFIEES.shp&quot;)</code></pre>
+<pre><code>## Reading layer `GEO_COMMUNES_GE_SIMPLIFIEES&#39; from data source `/home/xadam/dev/GitHub/ii_src/content/data/GEO_COMMUNES_GE_SIMPLIFIEES.shp&#39; using driver `ESRI Shapefile&#39;
+## Simple feature collection with 48 features and 7 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: 2485410 ymin: 1109645 xmax: 2512974 ymax: 1135578
+## epsg (SRID):    NA
+## proj4string:    +proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +units=m +no_defs</code></pre>
+<p>We can see that the file was successfully loaded, and that we have 48 geometry (of type <code>MULTIPOLYGON</code>) with 7 columns.</p>
+<p>Our usual dataframe functions (<code>dim</code>, <code>names</code>…) work on the <code>sf</code> object. With <code>glimpse</code> from <code>dplyr</code>, we can get a sense of what each column contains (e.g <code>COMMUNE</code> has the names of communes).</p>
+<pre class="r"><code># a glimpse at the column content
+glimpse(communes)</code></pre>
+<pre><code>## Observations: 48
+## Variables: 8
+## $ COMMUNE    &lt;fctr&gt; Corsier, Carouge, Puplinge, Perly-Certoux, Genève-...
+## $ NO_COMM    &lt;int&gt; 19, 8, 39, 35, 22, 21, 28, 13, 41, 7, 29, 47, 33, 2...
+## $ ABREVIATIO &lt;fctr&gt; Cr, Ca, Pu, P.C., E.V., V.G., He, C.Bg, Sy, Bx, Ju...
+## $ NO_COM_FED &lt;int&gt; 6619, 6608, 6636, 6632, 6621, 6621, 6625, 6613, 663...
+## $ LIEN_WWW   &lt;fctr&gt; http://www.geneve-communes.ch, http://www.geneve-c...
+## $ SHAPE_AREA &lt;dbl&gt; 2735462, 2703700, 2669651, 2542247, 2538140, 252017...
+## $ SHAPE_LEN  &lt;dbl&gt; 8817.079, 8682.215, 8290.230, 7353.972, 7805.008, 8...
+## $ geometry   &lt;simple_feature&gt; MULTIPOLYGON (((2506472.244..., MULTIPOL...</code></pre>
+<p>The <code>dplyr</code> verbs are also available. So you can <code>filter</code>, <code>rename</code>, <code>mutate</code>… and always get back a <code>sf</code> object.</p>
+<pre class="r"><code># Filter to see only commune &quot;Carouge&quot;
+communes %&gt;% filter(COMMUNE == &quot;Carouge&quot;) %&gt;% head</code></pre>
+<pre><code>## Simple feature collection with 1 feature and 7 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: 2498785 ymin: 1113794 xmax: 2500854 ymax: 1116325
+## epsg (SRID):    NA
+## proj4string:    +proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +units=m +no_defs
+##   COMMUNE NO_COMM ABREVIATIO NO_COM_FED                      LIEN_WWW
+## 1 Carouge       8         Ca       6608 http://www.geneve-communes.ch
+##   SHAPE_AREA SHAPE_LEN                       geometry
+## 1    2703700  8682.215 MULTIPOLYGON (((2499509.292...</code></pre>
+<pre class="r"><code># Filter to see only communes with &quot;Genève&quot; in their name
+communes %&gt;% filter(grepl(&quot;^genève&quot;, COMMUNE, ignore.case=T)) %&gt;% head</code></pre>
+<pre><code>## Simple feature collection with 4 features and 7 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: 2497477 ymin: 1114844 xmax: 2502538 ymax: 1120889
+## epsg (SRID):    NA
+## proj4string:    +proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +units=m +no_defs
+##                 COMMUNE NO_COMM ABREVIATIO NO_COM_FED
+## 1     Genève-Eaux-Vives      22       E.V.       6621
+## 2           Genève-Cité      21       V.G.       6621
+## 3 Genève-Petit-Saconnex      23        P.S       6621
+## 4    Genève-Plainpalais      24        Pl.       6621
+##                        LIEN_WWW SHAPE_AREA SHAPE_LEN
+## 1 http://www.geneve-communes.ch    2538140  7805.008
+## 2 http://www.geneve-communes.ch    2520179  8975.992
+## 3 http://www.geneve-communes.ch    6233939 13848.284
+## 4 http://www.geneve-communes.ch    4628296 14154.933
+##                         geometry
+## 1 MULTIPOLYGON (((2502293.896...
+## 2 MULTIPOLYGON (((2499898.226...
+## 3 MULTIPOLYGON (((2499654.219...
+## 4 MULTIPOLYGON (((2499714.537...</code></pre>
+<pre class="r"><code># Select only COMMUNE column (note that geometry is kept)
+# I also had to use select.sf rather than the generic select
+communes %&gt;% select.sf(COMMUNE) %&gt;% head</code></pre>
+<pre><code>## Simple feature collection with 6 features and 1 field
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: 2494595 ymin: 1111735 xmax: 2508349 ymax: 1125219
+## epsg (SRID):    NA
+## proj4string:    +proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +units=m +no_defs
+##             COMMUNE                       geometry
+## 1           Corsier MULTIPOLYGON (((2506472.244...
+## 2           Carouge MULTIPOLYGON (((2499509.292...
+## 3          Puplinge MULTIPOLYGON (((2507415.896...
+## 4     Perly-Certoux MULTIPOLYGON (((2496407.883...
+## 5 Genève-Eaux-Vives MULTIPOLYGON (((2502293.896...
+## 6       Genève-Cité MULTIPOLYGON (((2499898.226...</code></pre>
+<pre class="r"><code># Mutate names to lowercase
+communes %&gt;% 
+  mutate(COMMUNE = stringr::str_to_lower(COMMUNE)) %&gt;% 
+  head</code></pre>
+<pre><code>## Simple feature collection with 6 features and 7 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: 2494595 ymin: 1111735 xmax: 2508349 ymax: 1125219
+## epsg (SRID):    NA
+## proj4string:    +proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +units=m +no_defs
+##             COMMUNE NO_COMM ABREVIATIO NO_COM_FED
+## 1           corsier      19         Cr       6619
+## 2           carouge       8         Ca       6608
+## 3          puplinge      39         Pu       6636
+## 4     perly-certoux      35       P.C.       6632
+## 5 genève-eaux-vives      22       E.V.       6621
+## 6       genève-cité      21       V.G.       6621
+##                        LIEN_WWW SHAPE_AREA SHAPE_LEN
+## 1 http://www.geneve-communes.ch    2735462  8817.079
+## 2 http://www.geneve-communes.ch    2703700  8682.215
+## 3 http://www.geneve-communes.ch    2669651  8290.230
+## 4 http://www.geneve-communes.ch    2542247  7353.972
+## 5 http://www.geneve-communes.ch    2538140  7805.008
+## 6 http://www.geneve-communes.ch    2520179  8975.992
+##                         geometry
+## 1 MULTIPOLYGON (((2506472.244...
+## 2 MULTIPOLYGON (((2499509.292...
+## 3 MULTIPOLYGON (((2507415.896...
+## 4 MULTIPOLYGON (((2496407.883...
+## 5 MULTIPOLYGON (((2502293.896...
+## 6 MULTIPOLYGON (((2499898.226...</code></pre>
+<p>To learn more about applying <code>dplyr</code> verbs to <code>sf</code> objects, see <a href="https://r-spatial.github.io/sf/reference/dplyr.html">this article from the documentation</a> and <a href="http://strimas.com/r/tidy-sf/">Strimas blog post</a>.</p>
+<p>To map the polygons, there is now a dedicated geom <code>geom_sf</code> in <code>ggplot2</code>. This makes mapping geo areas as simple as lines (<code>geom_line</code>) or points (<code>geom_point</code>). Note that, at this stage, you need the development version of <code>ggplot2</code>.</p>
+<pre class="r"><code># if you don&#39;t have the development version
+# install.packages(&quot;devtools&quot;)
+# devtools::install_github(&quot;tidyverse/ggplot2&quot;)
+library(ggplot2)
+
+# Create a plot
+ggplot() + 
+  # add a layer with lightgrey communal polygons
+  geom_sf(data=communes) + 
+  # add a title
+  labs(title=&quot;Communals districts of Geneva&quot;)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><code>geom_sf</code> accepts styling arguments: <code>fill</code> for the color inside the polygons, <code>color</code> for the color of the polygons borders.</p>
+<pre class="r"><code>ggplot() + 
+  geom_sf(data=communes, fill=&quot;darkred&quot;, color=&quot;gold&quot;) + 
+  labs(title=&quot;Communals districts of Geneva&quot;)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-8-1.png" width="672" /> Great! But here we notice something surprising: districts don’t overlap the lake, but they do overlap the rivers. Let’see how we can fix this.</p>
+</div>
+<div id="removing-rivers" class="section level2">
+<h2>Removing rivers</h2>
+<p>The polygons of Geneva lake and main rivers (Rhône and Arve) are available <a href="http://ge.ch/sitg/sitg_catalog/sitg_donnees?keyword=petit%20lac&amp;topic=tous&amp;service=tous&amp;datatype=tous&amp;distribution=3&amp;sort=auto">here, named ‘EMPRISE DU LAC LEMAN (Petit-lac)’</a>. We can load them with <code>st_read</code> again.</p>
+<pre class="r"><code>waters &lt;- st_read(&quot;../data/GEO_LAC.shp&quot;)</code></pre>
+<pre><code>## Reading layer `GEO_LAC&#39; from data source `/home/xadam/dev/GitHub/ii_src/content/data/GEO_LAC.shp&#39; using driver `ESRI Shapefile&#39;
+## Simple feature collection with 3 features and 3 fields
+## geometry type:  POLYGON
+## dimension:      XY
+## bbox:           xmin: 2485388 ymin: 1110037 xmax: 2510891 ymax: 1136120
+## epsg (SRID):    NA
+## proj4string:    +proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +units=m +no_defs</code></pre>
+<pre class="r"><code>glimpse(waters)</code></pre>
+<pre><code>## Observations: 3
+## Variables: 4
+## $ NOM        &lt;fctr&gt; Léman, Arve, Rhône
+## $ SHAPE_AREA &lt;dbl&gt; 67916036.2, 638356.6, 3148365.7
+## $ SHAPE_LEN  &lt;dbl&gt; 64418.43, 21388.25, 59438.90
+## $ geometry   &lt;simple_feature&gt; POLYGON ((2510891.1652 1134..., POLYGON ...</code></pre>
+<p>There are only 3 geometries: Léman (the lake), Arve and Rhône (the main rivers). Let’s see what they looks like:</p>
+<pre class="r"><code># Create a plot
+ggplot() + 
+  # add a layer with blue water polygons
+  geom_sf(data=waters) + 
+  # add a title
+  labs(title=&quot;Lake and rivers of Geneva&quot;)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Using <code>dplyr</code> again, let’s filter to see only the rivers.</p>
+<pre class="r"><code># Create a plot
+ggplot() + 
+  # add a layer with blue water polygons
+  geom_sf(data= waters %&gt;% filter(NOM != &quot;Léman&quot;)) + 
+  # add a title
+  labs(title=&quot;Lake and rivers of Geneva&quot;)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>We could map waters on top of the communes. But we could also explore geometry calculations and remove it from the commune shapes. The <code>sf</code> package has functions to combine polygon sets into new <code>sf</code> object. The functions are described in this <a href="https://cran.r-project.org/web/packages/sf/vignettes/sf3.html">vignette</a>. You can do things like union (<code>st_union</code>), intersection (<code>st_intersection</code>), difference (<code>st_difference</code>)… Here we will calculate the difference, which keeps everything but the intersection. Note that we need to apply <code>st_union</code> to waters so that both rivers are considered “grouped”, otherwise nothing will be removed since communes are never overlapped by both rivers in the same place.</p>
+<pre class="r"><code>communes_no_water &lt;- 
+  communes %&gt;%
+    st_difference(st_union(waters))</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant
+## throughout all geometries</code></pre>
+<pre class="r"><code>ggplot() +
+  geom_sf(data=communes_no_water) +
+  labs(title=&quot;Communes without rivers&quot;)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<pre class="r"><code> # coord_sf(xlim=c(2490000,2495000), ylim=c(1115000,1120000), datum = st_crs(communes_no_water))</code></pre>
+</div>
+<div id="zooming-on-the-map" class="section level2">
+<h2>Zooming on the map</h2>
+<p>To check that rivers were correctly removed, we might want to “zoom” on the map. Along <code>geom_sf</code>, a dedicated coordinate function <code>coord_sf</code> was added, which lets us restrict coordinates.</p>
+</div>
+<div id="simplify-polygons" class="section level2">
+<h2>Simplify polygons</h2>
+<p>This is nearly too detailed for the shematic look we are after. To simplify polygons, we can use the <code>rmapshaper</code> package (on Ubuntu, I had to install dependencies <a href="https://github.com/ropensci/geojsonio/issues/65"><code>libv8-dev</code></a> and <a href="https://github.com/jeroen/protolite"><code>protolite</code></a>). <code>rmapshaper</code> lets us access the <code>mapshaper</code> javascript library, which provide tools to simplify and modify polygons. We will mainly use the simplify function <code>ms_simplify</code>. Arguments for <code>ms_simplify</code> are described in the <a href="https://cran.r-project.org/web/packages/rmapshaper/vignettes/rmapshaper.html">vignette</a>. One important feature</p>
+<pre class="r"><code>library(rmapshaper)
+library(gridExtra)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;gridExtra&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     combine</code></pre>
+<pre class="r"><code>communes_no_water_simplified &lt;- 
+  communes_no_water %&gt;%
+    ms_simplify(keep_shapes=T, keep=0.02)
+
+# using grid.arrange from gridExtra
+# we can plot the two version side by side
+chart_original &lt;-
+  ggplot() + 
+    geom_sf(data=communes_no_water) +
+    labs(title=&quot;Original polygons&quot;,
+         subtitle=&quot;No ms_simplify&quot;)
+
+chart_simplified &lt;-
+  ggplot() + 
+    geom_sf(data=communes_no_water_simplified) +
+    labs(title=&quot;Simplified polygons&quot;,
+         subtitle=&quot;ms_simplify at keep=0.02&quot;)
+
+grid.arrange(chart_original, chart_simplified, ncol=2)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+</div>
+<div id="map-buildings-and-forests" class="section level2">
+<h2>Map buildings and forests</h2>
+<p>The polygons of forest and building zones are available <a href="http://ge.ch/sitg/sitg_catalog/sitg_donnees?keyword=agglo%20zone%20simplifiee&amp;topic=tous&amp;service=tous&amp;datatype=tous&amp;distribution=3&amp;sort=auto">here, named ‘AGGLO - ZONES D’AFFECTATION SIMPLIFIEES DE L’AGGLOMERATION FRANCO-VALDO-GENEVOISE’</a>. We can load them with <code>st_read</code> again.</p>
+<pre class="r"><code>zones &lt;- st_read(&quot;../data/AGGLO_ZONE_AFF_SIMPLIFIEE.shp&quot;)</code></pre>
+<pre><code>## Reading layer `AGGLO_ZONE_AFF_SIMPLIFIEE&#39; from data source `/home/xadam/dev/GitHub/ii_src/content/data/AGGLO_ZONE_AFF_SIMPLIFIEE.shp&#39; using driver `ESRI Shapefile&#39;
+## Simple feature collection with 24474 features and 8 fields
+## geometry type:  POLYGON
+## dimension:      XYZ
+## bbox:           xmin: 2465760 ymin: 1089315 xmax: 2531322 ymax: 1155694
+## epsg (SRID):    NA
+## proj4string:    +proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +units=m +no_defs</code></pre>
+<pre class="r"><code>glimpse(zones)</code></pre>
+<pre><code>## Observations: 24,474
+## Variables: 9
+## $ COMMUNE    &lt;fctr&gt; CROZET, CROZET, CROZET, CROZET, CROZET, CROZET, CR...
+## $ LIBFVG     &lt;fctr&gt; Zone de centre village, Zone agricole ou viticole,...
+## $ SOURCE     &lt;fctr&gt; PLU, PLU, PLU, PLU, PLU, PLU, PLU, PLU, PLU, PLU, ...
+## $ CODECOM    &lt;fctr&gt; 01135, 01135, 01135, 01135, 01135, 01135, 01135, 0...
+## $ CODEFVG    &lt;fctr&gt; B, N1, N2, N2, E1y, N2, N2, N2, E1, E1, E1, E1, y,...
+## $ CODEURB    &lt;fctr&gt; Ua, Na, N, N, 1AUt, Nh, Nh, Nh, Nt, Ut, Ut, Ut, 2A...
+## $ SHAPE_AREA &lt;dbl&gt; 28170.5386, 6904.7535, 2839.2095, 4186.5152, 23454....
+## $ SHAPE_LEN  &lt;dbl&gt; 1174.0810, 335.0173, 244.3988, 296.8529, 1367.4976,...
+## $ geometry   &lt;simple_feature&gt; POLYGON Z ((2489475.4124 11..., POLYGON ...</code></pre>
+<p>Lots of things happening here. Among the variables, <code>LIBFVG</code> seems to contains the zone types. If we extract the column (encoded as factor), we can use <code>levels</code> to see unique values.</p>
+<pre class="r"><code>zones$LIBFVG %&gt;%
+  levels()</code></pre>
+<pre><code>##  [1] &quot;Zone à affectation différée&quot;                       
+##  [2] &quot;Zone aéroportuaire&quot;                                
+##  [3] &quot;Zone agricole ou viticole&quot;                         
+##  [4] &quot;Zone centrale à très forte densité&quot;                
+##  [5] &quot;Zone d&#39;activités économiques ou touristiques&quot;      
+##  [6] &quot;Zone de centre historique&quot;                         
+##  [7] &quot;Zone de centre village&quot;                            
+##  [8] &quot;Zone d&#39;équipements publics, sportifs ou de loisirs&quot;
+##  [9] &quot;Zone de verdure&quot;                                   
+## [10] &quot;Zone future centrale à très forte densité&quot;         
+## [11] &quot;Zone future d&#39;activités économiques ou touristiqu&quot; 
+## [12] &quot;Zone future de centre village&quot;                     
+## [13] &quot;Zone future d&#39;équipements publics, sportifs ou de&quot; 
+## [14] &quot;Zone future péricentrale à forte densité&quot;          
+## [15] &quot;Zone future péricentrale à moyenne densité&quot;        
+## [16] &quot;Zone future périurbaine à faible densité&quot;          
+## [17] &quot;Zone liée aux grandes infrastructures de transport&quot;
+## [18] &quot;Zone naturelle ou forestière&quot;                      
+## [19] &quot;Zone péricentrale à forte densité&quot;                 
+## [20] &quot;Zone péricentrale à moyenne densité&quot;               
+## [21] &quot;Zone périurbaine à faible densité&quot;</code></pre>
+<p>Let’s isolate the building zones and add it as an additional <code>geom_sf</code> layer to our map (grey fill, no borders):</p>
+<pre class="r"><code>building_zones &lt;- c(
+    &quot;Zone périurbaine à faible densité&quot;,
+    &quot;Zone péricentrale à moyenne densité&quot;,
+    &quot;Zone péricentrale à forte densité&quot;,
+    &quot;Zone de centre village&quot;,
+    &quot;Zone centrale à très forte densité&quot;,
+    &quot;Zone de centre historique&quot;,                         
+    &quot;Zone aéroportuaire&quot;
+)
+
+ggplot() + 
+  geom_sf(data=communes_no_water_simplified) +
+  geom_sf(data=zones %&gt;% filter(LIBFVG %in% building_zones),
+          fill=&quot;grey&quot;, color=NA)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>First thing to note: the area covered by the <code>zones</code> polygons is way larger than our little Geneva canton. Previously we used <code>st_difference</code> to find the non-overlapping area, let’s use <code>st_intersection</code> to find overlapping area and “crop” the <code>zones</code> polygons to Geneva area. We will also slightly simplify the polygons with <code>ms_simplify</code>, so they don’t look too detailled compared to our commune borders.</p>
+<pre class="r"><code>buildings_geneva &lt;-
+  zones %&gt;%
+   filter(LIBFVG %in% building_zones) %&gt;%
+   ms_simplify(keep_shapes = T, keep=0.0001) %&gt;%
+   st_intersection(st_union(communes_no_water_simplified))</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant
+## throughout all geometries</code></pre>
+<pre class="r"><code>ggplot() +
+  geom_sf(data=communes_no_water_simplified) +
+  geom_sf(data=buildings_geneva, fill=&quot;grey&quot;, color=NA)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p>To plot the borders of the communes above the building areas, we can call <code>geom_sf</code> twice rather than once. Remember that <code>ggplot</code> chart work as stack of layers, so each additional <code>geom</code> goes on top of the previous ones.</p>
+<pre class="r"><code># Create ggplot
+ggplot() +
+  # Add polygons for communes, default fill, no border
+  geom_sf(data=communes_no_water_simplified, color=NA) +
+  # Add polygons for buildings, fill grey, no border
+  geom_sf(data=buildings_geneva, fill=&quot;grey&quot;, color=NA) +
+  # Add polygons for communes, no fill, default border
+  geom_sf(data=communes_no_water_simplified, fill=NA) +
+  labs(title=&quot;Geneva communes and buildings&quot;)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p>Let’s do the same with the forest areas. When I tried to use <code>st_intersection</code> here, I got <code>TopologyException</code> errors and warnings about <code>Self-intersection</code>. Adding calls to <code>st_make_valid</code> where you get these errors seems <a href="https://github.com/r-spatial/sf/issues/347">to fix the issues</a>.</p>
+<pre class="r"><code>forest_zones &lt;- c(
+    &quot;Zone de verdure&quot;
+    ,&quot;Zone naturelle ou forestière&quot;
+)
+
+forests_geneva &lt;-
+  zones %&gt;%
+   filter(LIBFVG %in% forest_zones) %&gt;%
+   ms_simplify(keep=0.005) %&gt;%
+   st_make_valid() %&gt;%
+   st_intersection(st_union(communes_no_water_simplified))</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant
+## throughout all geometries</code></pre>
+<pre class="r"><code>ggplot() +
+  # Add polygons for communes, default fill, no border
+  geom_sf(data=communes_no_water_simplified, color=NA) +
+  # Add polygons for buildings, fill grey, no border
+  geom_sf(data=buildings_geneva, fill=&quot;grey&quot;, color=NA) +
+  # Add polygons for forests, fill grey, no border +
+  geom_sf(data=forests_geneva, fill=&quot;darkgreen&quot;, alpha=0.2, color=NA)+
+  # Add polygons borders for communes, no fill, default border
+  geom_sf(data=communes_no_water_simplified, fill=NA) +
+  labs(title=&quot;Geneva communes, buildings and forests&quot;)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p>If we got carried away, we could even add the agricultural fields to the map.</p>
+<pre class="r"><code>fields_geneva &lt;-
+  zones %&gt;%
+   filter(LIBFVG == &quot;Zone agricole ou viticole&quot;) %&gt;%
+   ms_simplify(keep=0.005) %&gt;%
+   st_make_valid() %&gt;%
+   st_intersection(st_union(communes_no_water_simplified))</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant
+## throughout all geometries</code></pre>
+<pre class="r"><code>ggplot() +
+  # Add polygons for communes, default fill, no border
+  geom_sf(data=communes_no_water_simplified, color=NA) +
+  # Add polygons for forests, fill green, no border +
+  geom_sf(data=forests_geneva, fill=&quot;darkgreen&quot;, alpha=0.2, color=NA)+
+  # Add polygons for agricultural area
+  geom_sf(data=fields_geneva, fill=&quot;yellow&quot;, alpha=0.1, color=NA)+
+  # Add polygons for buildings, fill grey, no border
+  geom_sf(data=buildings_geneva, fill=&quot;grey&quot;, color=NA) +
+  # Add polygons borders for communes, no fill, default border
+  geom_sf(data=communes_no_water_simplified, fill=NA) +
+  labs(title=&quot;Geneva communes, buildings, forests and fields&quot;)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+</div>
+<div id="adding-back-waters" class="section level2">
+<h2>Adding back waters</h2>
+<p>What if we decided to add waters back?</p>
+<pre class="r"><code>ggplot() +
+  # Add lake and rivers
+  geom_sf(data=waters, fill=&quot;blue&quot;, color=NA) + 
+  # Add polygons for communes, default fill, no border
+  geom_sf(data=communes_no_water_simplified, color=NA) +
+  # Add polygons for forests, fill green, no border +
+  geom_sf(data=forests_geneva, fill=&quot;darkgreen&quot;, alpha=0.2, color=NA)+
+  # Add polygons for agricultural area
+  geom_sf(data=fields_geneva, fill=&quot;yellow&quot;, alpha=0.1, color=NA)+
+  # Add polygons for buildings, fill grey, no border
+  geom_sf(data=buildings_geneva, fill=&quot;grey&quot;, color=NA) +
+  # Add polygons borders for communes, no fill, default border
+  geom_sf(data=communes_no_water_simplified, fill=NA) +
+  labs(title=&quot;Geneva communes, buildings, forests and fields&quot;,
+       subtitle=&quot;Water is misaligned...&quot;)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<p>Unfortunately, our water borders cannot match our simplified communes map. Even if we apply exactly the same <code>ms_simplify</code>, it won’t do the trick.</p>
+<pre class="r"><code>waters_simplified &lt;-
+  waters %&gt;%
+  ms_simplify(keep_shapes=T, keep=0.02)
+
+ggplot() +
+  # Add lake and rivers
+  geom_sf(data=waters_simplified, fill=&quot;blue&quot;, color=NA) + 
+  # Add polygons for communes, default fill, no border
+  geom_sf(data=communes_no_water_simplified, color=NA) +
+  # Add polygons for forests, fill green, no border +
+  geom_sf(data=forests_geneva, fill=&quot;darkgreen&quot;, alpha=0.2, color=NA)+
+  # Add polygons for agricultural area
+  geom_sf(data=fields_geneva, fill=&quot;yellow&quot;, alpha=0.1, color=NA)+
+  # Add polygons for buildings, fill grey, no border
+  geom_sf(data=buildings_geneva, fill=&quot;grey&quot;, color=NA) +
+  # Add polygons borders for communes, no fill, default border
+  geom_sf(data=communes_no_water_simplified, fill=NA) +
+  labs(title=&quot;Geneva communes, buildings, forests and fields&quot;,
+       subtitle=&quot;Water, even simplified, is still misaligned...&quot;)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<p>The solution is to apply put communes and water into the same <code>sf</code> object before applying <code>ms_simplify</code>.</p>
+<pre class="r"><code>#https://github.com/r-spatial/sf/issues/223
+communes_and_water &lt;- 
+  communes %&gt;%
+  # remove waters from the original communes
+  st_difference(st_union(st_combine(waters))) %&gt;%
+  # apply the same columns names so that we
+  # can bind waters and communes sf objects
+  rename(NOM=COMMUNE) %&gt;%
+  select(NOM, SHAPE_AREA, SHAPE_LEN) %&gt;%
+  # add the waters polygons
+  rbind(waters) %&gt;%
+  # simplify
+  ms_simplify(keep=0.01) %&gt;%
+  st_make_valid()</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant
+## throughout all geometries</code></pre>
+<pre class="r"><code>ggplot() +
+  geom_sf(data=communes_and_water) +
+  labs(title=&quot;Communes and waters in the same sf&quot;,
+       subtitle=&quot;Simplifed together at 0.01&quot;)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<p>Now that borders are aligned, we can split <code>communes</code> and <code>water</code> again. This makes cropping other <code>sf</code> objects on communes, as well as applying different fill color much easier.</p>
+<pre class="r"><code>communes_simplified &lt;- 
+  communes_and_water %&gt;%
+  filter(!(NOM %in% waters$NOM))
+
+waters_simplified &lt;- 
+  communes_and_water %&gt;%
+  filter(NOM %in% waters$NOM)
+
+buildings_geneva &lt;-
+  zones %&gt;%
+   filter(LIBFVG %in% building_zones) %&gt;%
+   ms_simplify(keep=0.005) %&gt;%
+   st_make_valid() %&gt;%
+   st_intersection(st_union(st_combine(communes_simplified)))</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant
+## throughout all geometries</code></pre>
+<pre class="r"><code>forests_geneva &lt;-
+  zones %&gt;%
+   filter(LIBFVG %in% forest_zones) %&gt;%
+   ms_simplify(keep=0.005) %&gt;%
+   st_make_valid() %&gt;%
+   st_intersection(st_union(communes_simplified))</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant
+## throughout all geometries</code></pre>
+<pre class="r"><code>fields_geneva &lt;-
+  zones %&gt;%
+   filter(LIBFVG == &quot;Zone agricole ou viticole&quot;) %&gt;%
+   ms_simplify(keep=0.005) %&gt;%
+   st_make_valid() %&gt;%
+   st_intersection(st_union(communes_simplified))</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant
+## throughout all geometries</code></pre>
+<pre class="r"><code>ggplot() +
+  # Add lake and rivers
+  geom_sf(data=waters_simplified, fill=&quot;lightblue&quot;, color=NA) + 
+  # Add polygons for communes, default fill, no border
+  geom_sf(data=communes_simplified) +
+  # Add polygons for forests, fill green, no border +
+  geom_sf(data=forests_geneva, fill=&quot;darkgreen&quot;, alpha=0.2, color=NA)+
+  # Add polygons for buildings, fill grey, no border
+  geom_sf(data=buildings_geneva, fill=&quot;grey&quot;, color=NA) +
+  # Add polygons for agricultural area
+  geom_sf(data=fields_geneva, fill=&quot;yellow&quot;, alpha=0.1, color=NA)+
+  # Add polygons borders for communes, no fill, default border
+  geom_sf(data=communes_simplified, fill=NA) +
+  labs(title=&quot;Geneva communes, buildings and forests&quot;)</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+</div>
+<div id="final-styling" class="section level2">
+<h2>Final styling</h2>
+<pre class="r"><code>library(hrbrthemes)
+
+ggplot() +
+  # Add lake and rivers
+  geom_sf(data=waters_simplified, fill=&quot;lightblue&quot;, color=&quot;lightblue&quot;) + 
+  # Add polygons for communes, default fill, no border
+  geom_sf(data=communes_simplified) +
+  # Add polygons for forests, fill green, no border +
+  geom_sf(data=forests_geneva, fill=&quot;lightgreen&quot;, color=&quot;lightgreen&quot;) +
+   # Add polygons for agricultural area
+  geom_sf(data=fields_geneva, fill=&quot;lightyellow&quot;, color=&quot;lightyellow&quot;) +
+  # Add polygons for buildings, fill grey, no border
+  geom_sf(data=buildings_geneva, fill=&quot;lightgrey&quot;, color=&quot;lightgrey&quot;) +
+  # Add polygons borders for communes, no fill, default border
+  geom_sf(data=communes_simplified, fill=NA, size=0.5, color=&quot;darkgrey&quot;) +
+  labs(title=&quot;Geneva Land Use&quot;,
+       subtitle=&quot;showing communes, buildings, forests and fields&quot;) +
+  theme_ipsum()</code></pre>
+<p><img src="../../../../post/170915-map-ggplot-sf_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="../../../../index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="../../../../images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+<script src="../../../../js/math-code.js"></script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    processEscapes: true
+  }
+});
+</script>
+<script async src="//cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+  </body>
+</html>
+
