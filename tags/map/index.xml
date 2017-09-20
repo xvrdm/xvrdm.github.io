@@ -511,7 +511,12 @@ buildings_geneva &amp;lt;-
 &lt;/div&gt;
 &lt;div id=&#34;some-more-styling&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Some more styling&lt;/h2&gt;
-&lt;p&gt;A few final tweaks: - add a caption to mention the source of the data - add fill and border for smoother borders (I see some jagged lines in ubuntu) - apply the &lt;code&gt;ipsum&lt;/code&gt; theme from &lt;code&gt;hrbrthemes&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;A few final tweaks:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;add a caption to mention the source of the data&lt;/li&gt;
+&lt;li&gt;add fill and border for smoother borders (I see some jagged lines in ubuntu)&lt;/li&gt;
+&lt;li&gt;apply the &lt;code&gt;ipsum&lt;/code&gt; theme from Bob Rudis &lt;a href=&#34;https://github.com/hrbrmstr/hrbrthemes&#34;&gt;&lt;code&gt;hrbrthemes&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(hrbrthemes)
 
 ggplot() +
