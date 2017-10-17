@@ -57,13 +57,13 @@
   </url>
   
   <url>
-    <loc>/tags/clojure/</loc>
+    <loc>/categories/clojure/</loc>
     <lastmod>2017-06-13T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>/categories/clojure/</loc>
+    <loc>/tags/clojure/</loc>
     <lastmod>2017-06-13T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
@@ -81,13 +81,13 @@
   </url>
   
   <url>
-    <loc>/tags/emacs/</loc>
+    <loc>/categories/emacs/</loc>
     <lastmod>2017-05-29T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>/categories/emacs/</loc>
+    <loc>/tags/emacs/</loc>
     <lastmod>2017-05-29T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
@@ -165,25 +165,25 @@
   </url>
   
   <url>
-    <loc>/tags/python/</loc>
-    <lastmod>2017-07-03T00:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>/categories/python/</loc>
     <lastmod>2017-07-03T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>/tags/r/</loc>
-    <lastmod>2017-09-15T00:00:00+00:00</lastmod>
+    <loc>/tags/python/</loc>
+    <lastmod>2017-07-03T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>/categories/r/</loc>
+    <lastmod>2017-09-15T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/tags/r/</loc>
     <lastmod>2017-09-15T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
