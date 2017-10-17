@@ -8,6 +8,11 @@
 
 <title>Scraping javascript generated content with splashr - Invalid Input</title>
 <meta property="og:title" content="Scraping javascript generated content with splashr - Invalid Input">
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:title" content="Scraping javascript generated content with splashr">
+<meta property="twitter:creator" content="@xvrdm">
+<meta property="twitter:site" content="Invalid Input">
+<meta property="twitter:image" content="https://xvrdm.github.io/img/">
 
 
 
@@ -27,7 +32,7 @@
 <link rel="stylesheet" href="../../../../css/fonts.css" media="all">
 <link rel="stylesheet" href="../../../../css/main.css" media="all">
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Ubuntu+Mono:400,400i,700,700i">
+
 
   </head>
   <body>
@@ -46,6 +51,8 @@
     <li><a href="../../../../about/">About</a></li>
     
     <li><a href="https://github.com/xvrdm">GitHub</a></li>
+    
+    <li><a href="https://twitter.com/invalid_input">Twitter</a></li>
     
   </ul>
 </nav>
@@ -135,7 +142,8 @@ devtools::install_github(&quot;hrbrmstr/splashr&quot;)</code></pre>
 <li>Let RStudio know that you want python commands to be run in this virtualenv</li>
 </ol>
 <pre class="r"><code># Use the path where you installed the docker venv
-reticulate::use_virtualenv(&quot;~/dev/virtualenvs/docker&quot;, required=T)</code></pre>
+library(reticulate)
+use_virtualenv(&quot;~/.virtualenv/docker&quot;, required=T)</code></pre>
 <p>The very first time we run <code>splashr</code>, it might be a bit slow: it will have to download the docker image (the template used to create container) that has <code>Splash</code> installed in it. The image is documented <a href="https://hub.docker.com/r/hrbrmstr/splashttpd/">here</a>.</p>
 <pre class="r"><code>suppressMessages(library(splashr))
 install_splash()</code></pre>
@@ -152,11 +160,11 @@ count &lt;- listing_html_js %&gt;%
   html_node(&quot;#count-search&quot;) %&gt;%
   html_text()
 print(paste(&quot;count value is:&quot;, count))</code></pre>
-<pre><code>## [1] &quot;count value is: (32 results)&quot;</code></pre>
+<pre><code>## [1] &quot;count value is: (23 results)&quot;</code></pre>
 <p>The number is extracted with a little regular expression and the <code>stringr</code> package:</p>
 <pre class="r"><code>offer_number &lt;- stringr::str_extract(count, &quot;[0-9]+&quot;) 
 print(paste(&quot;offer_number value is:&quot;, offer_number))</code></pre>
-<pre><code>## [1] &quot;offer_number value is: 32&quot;</code></pre>
+<pre><code>## [1] &quot;offer_number value is: 23&quot;</code></pre>
 <p>Don’t forget to stop and delete your container.</p>
 <pre class="r"><code>stop_splash(splash_container)</code></pre>
 <p>We now have the expected number of offers, which we can use to verify our final dataset (read <a href="https://xvrdm.github.io/2017/03/31/scrape-a-list-of-rental-offers-using-rvest-and-purrr/">previous post</a> to see how).</p>
@@ -193,6 +201,9 @@ print(paste(&quot;offer_number value is:&quot;, offer_number))</code></pre>
 
 <script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
 <script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/clojure.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/hy.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/python.min.js"></script>
 <script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
 
 

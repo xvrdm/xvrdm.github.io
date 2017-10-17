@@ -82,7 +82,8 @@ devtools::install_github(&amp;quot;hrbrmstr/splashr&amp;quot;)&lt;/code&gt;&lt;/
 &lt;li&gt;Let RStudio know that you want python commands to be run in this virtualenv&lt;/li&gt;
 &lt;/ol&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Use the path where you installed the docker venv
-reticulate::use_virtualenv(&amp;quot;~/dev/virtualenvs/docker&amp;quot;, required=T)&lt;/code&gt;&lt;/pre&gt;
+library(reticulate)
+use_virtualenv(&amp;quot;~/.virtualenv/docker&amp;quot;, required=T)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;The very first time we run &lt;code&gt;splashr&lt;/code&gt;, it might be a bit slow: it will have to download the docker image (the template used to create container) that has &lt;code&gt;Splash&lt;/code&gt; installed in it. The image is documented &lt;a href=&#34;https://hub.docker.com/r/hrbrmstr/splashttpd/&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;suppressMessages(library(splashr))
 install_splash()&lt;/code&gt;&lt;/pre&gt;
@@ -99,11 +100,11 @@ count &amp;lt;- listing_html_js %&amp;gt;%
   html_node(&amp;quot;#count-search&amp;quot;) %&amp;gt;%
   html_text()
 print(paste(&amp;quot;count value is:&amp;quot;, count))&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;count value is: (32 results)&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;count value is: (23 results)&amp;quot;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;The number is extracted with a little regular expression and the &lt;code&gt;stringr&lt;/code&gt; package:&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;offer_number &amp;lt;- stringr::str_extract(count, &amp;quot;[0-9]+&amp;quot;) 
 print(paste(&amp;quot;offer_number value is:&amp;quot;, offer_number))&lt;/code&gt;&lt;/pre&gt;
-&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;offer_number value is: 32&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] &amp;quot;offer_number value is: 23&amp;quot;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Don’t forget to stop and delete your container.&lt;/p&gt;
 &lt;pre class=&#34;r&#34;&gt;&lt;code&gt;stop_splash(splash_container)&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;We now have the expected number of offers, which we can use to verify our final dataset (read &lt;a href=&#34;https://xvrdm.github.io/2017/03/31/scrape-a-list-of-rental-offers-using-rvest-and-purrr/&#34;&gt;previous post&lt;/a&gt; to see how).&lt;/p&gt;
