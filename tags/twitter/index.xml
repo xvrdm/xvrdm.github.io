@@ -246,7 +246,8 @@
 &lt;pre class=&#34;yaml&#34;&gt;&lt;code&gt;title: &amp;quot;Create maps from SITG files with sf and ggplot2&amp;quot;
 author: &amp;quot;Xavier Adam&amp;quot;
 date: 2017-09-15
-twitterImg: /img/map-ggplot-sf-social.img
+twitterImg: /img/map-ggplot-sf-social.png
+description: &amp;quot;Learn to create maps with sf and ggplot2, starting from SHAPE files.&amp;quot;
 categories: [&amp;quot;R&amp;quot;]
 tags: [&amp;quot;R&amp;quot;,&amp;quot;RMarkdown&amp;quot;,&amp;quot;map&amp;quot;, &amp;quot;shape&amp;quot;, &amp;quot;sf&amp;quot;, &amp;quot;ggplot2&amp;quot;, &amp;quot;rmapshaper&amp;quot;]&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;The template syntax would be something like:&lt;/p&gt;
@@ -290,7 +291,8 @@ tags: [&amp;quot;R&amp;quot;,&amp;quot;RMarkdown&amp;quot;,&amp;quot;map&amp;quo
 
 &amp;lt;meta name=&amp;quot;twitter:creator&amp;quot; content=&amp;quot;{{ .Params.twitterAuthor }}&amp;quot;&amp;gt;
 &amp;lt;meta name=&amp;quot;twitter:site&amp;quot; content=&amp;quot;{{ .Params.twitterSite }}&amp;quot;&amp;gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Using the &lt;a href=&#34;&#34;&gt;card validator&lt;/a&gt;, you can try your new cards:&lt;/p&gt;
+&lt;p&gt;Using the &lt;a href=&#34;https://cards-dev.twitter.com/validator&#34;&gt;card validator&lt;/a&gt;, you can try your new cards:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;../../img/20171023-socialize-blogdown-cardval-1.png&#34; /&gt; &lt;img src=&#34;../../img/20171023-socialize-blogdown-cardval-2.png&#34; /&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;

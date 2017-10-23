@@ -247,7 +247,8 @@
 &lt;pre class=&#34;yaml&#34;&gt;&lt;code&gt;title: &amp;quot;Create maps from SITG files with sf and ggplot2&amp;quot;
 author: &amp;quot;Xavier Adam&amp;quot;
 date: 2017-09-15
-twitterImg: /img/map-ggplot-sf-social.img
+twitterImg: /img/map-ggplot-sf-social.png
+description: &amp;quot;Learn to create maps with sf and ggplot2, starting from SHAPE files.&amp;quot;
 categories: [&amp;quot;R&amp;quot;]
 tags: [&amp;quot;R&amp;quot;,&amp;quot;RMarkdown&amp;quot;,&amp;quot;map&amp;quot;, &amp;quot;shape&amp;quot;, &amp;quot;sf&amp;quot;, &amp;quot;ggplot2&amp;quot;, &amp;quot;rmapshaper&amp;quot;]&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;The template syntax would be something like:&lt;/p&gt;
@@ -291,7 +292,8 @@ tags: [&amp;quot;R&amp;quot;,&amp;quot;RMarkdown&amp;quot;,&amp;quot;map&amp;quo
 
 &amp;lt;meta name=&amp;quot;twitter:creator&amp;quot; content=&amp;quot;{{ .Params.twitterAuthor }}&amp;quot;&amp;gt;
 &amp;lt;meta name=&amp;quot;twitter:site&amp;quot; content=&amp;quot;{{ .Params.twitterSite }}&amp;quot;&amp;gt;&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Using the &lt;a href=&#34;&#34;&gt;card validator&lt;/a&gt;, you can try your new cards:&lt;/p&gt;
+&lt;p&gt;Using the &lt;a href=&#34;https://cards-dev.twitter.com/validator&#34;&gt;card validator&lt;/a&gt;, you can try your new cards:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;./img/20171023-socialize-blogdown-cardval-1.png&#34; /&gt; &lt;img src=&#34;./img/20171023-socialize-blogdown-cardval-2.png&#34; /&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
@@ -304,7 +306,11 @@ tags: [&amp;quot;R&amp;quot;,&amp;quot;RMarkdown&amp;quot;,&amp;quot;map&amp;quo
       <pubDate>Fri, 15 Sep 2017 00:00:00 +0000</pubDate>
       
       <guid>/2017/09/15/create-maps-from-sitg-files-with-sf-and-ggplot2/</guid>
-      <description>&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+      <description>&lt;div id=&#34;tldr&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;TL;DR&lt;/h2&gt;
+&lt;p&gt;In this post, we see how to create a map in R using the &lt;code&gt;sf&lt;/code&gt; and &lt;code&gt;ggplot2&lt;/code&gt; package, starting from freely available SHAPE files.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
 &lt;h2&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;In Geneva (Switzerland), we are lucky to have &lt;a href=&#34;http://ge.ch/sitg/sitg_catalog/sitg_donnees?keyword&amp;amp;distribution=3&amp;amp;datatype=tous&amp;amp;topic=tous&amp;amp;service=tous&#34;&gt;SITG&lt;/a&gt;, a website with tons of geographical open datasets. I wanted to try my hand at doing maps in R for some time now, but could not find a way that felt integrated with the other packages I usually work with. Importing &lt;a href=&#34;https://en.wikipedia.org/wiki/Shapefile&#34;&gt;&lt;code&gt;.sh&lt;/code&gt;&lt;/a&gt; files was a challenge (for me), as well as plotting the data in &lt;a href=&#34;http://ggplot2.tidyverse.org/&#34;&gt;&lt;code&gt;ggplot2&lt;/code&gt;&lt;/a&gt; rather than with a dedicated map library like &lt;a href=&#34;https://cran.r-project.org/web/packages/tmap/vignettes/tmap-nutshell.html&#34;&gt;&lt;code&gt;tmap&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;All that changed with &lt;a href=&#34;http://r-spatial.github.io/sf/&#34;&gt;&lt;code&gt;sf&lt;/code&gt;&lt;/a&gt;, a package that implements &lt;a href=&#34;https://en.wikipedia.org/wiki/Simple_Features&#34;&gt;Simple Features&lt;/a&gt; for R. Full disclaimer: I know nothing about geographic information systems. All I can say is: if you are already using the &lt;a href=&#34;https://www.tidyverse.org/&#34;&gt;&lt;code&gt;tidyverse&lt;/code&gt;&lt;/a&gt;, &lt;code&gt;sf&lt;/code&gt; makes it really straightforward to convert geographical datasets to &lt;code&gt;data.frames/tibbles&lt;/code&gt; that you can then manipulate with your usual toolbox (&lt;code&gt;dplyr&lt;/code&gt;, &lt;code&gt;tidyr&lt;/code&gt;…). To learn more about the ecosystem of R packages for geocomputation, you could do worse than start &lt;a href=&#34;http://robinlovelace.net/geocompr/intro.html#rs-spatial-ecosystem&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
