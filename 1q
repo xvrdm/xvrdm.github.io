@@ -1,0 +1,105 @@
+Fixed bug - twitter_author and twitter_site were searched in the post
+yaml rather than in the config.toml
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch is up-to-date with 'origin/master'.
+#
+# Changes to be committed:
+#	modified:   2017/03/31/scrape-a-list-of-rental-offers-using-rvest-and-purrr/index.html
+#	modified:   2017/04/16/scrape-linked-webpages-using-rvest-and-purrr/index.html
+#	modified:   2017/05/08/create-swiss-cantons-cartogram-with-ggplot2/index.html
+#	modified:   2017/05/29/a-minimal-emacs-setup-with-orgmode/index.html
+#	modified:   2017/06/08/clojure-for-pythonista---user-input/loop/conditional/index.html
+#	modified:   2017/06/13/clojure-for-pythonista---manipulating-strings/index.html
+#	modified:   2017/07/03/testing-flask-sqlalchemy-database-with-pytest/index.html
+#	modified:   2017/07/26/scraping-javascript-generated-content-with-splashr/index.html
+#	modified:   2017/09/15/create-maps-from-sitg-files-with-sf-and-ggplot2/index.html
+#	modified:   about/index.html
+#	modified:   categories/clojure/index.html
+#	modified:   categories/emacs/index.html
+#	modified:   categories/python/index.html
+#	modified:   categories/r/index.html
+#	modified:   post/index.html
+#	modified:   sitemap.xml
+#	modified:   tags/clojure/index.html
+#	modified:   tags/dplyr/index.html
+#	modified:   tags/dt/index.html
+#	modified:   tags/emacs/index.html
+#	modified:   tags/flask-sqlalchemy/index.html
+#	modified:   tags/flask/index.html
+#	modified:   tags/ggplot2/index.html
+#	modified:   tags/harbor/index.html
+#	modified:   tags/javascript/index.html
+#	modified:   tags/leaflet/index.html
+#	modified:   tags/map/index.html
+#	modified:   tags/org-mode/index.html
+#	modified:   tags/purrr/index.html
+#	modified:   tags/pytest/index.html
+#	modified:   tags/python/index.html
+#	modified:   tags/r-markdown/index.html
+#	modified:   tags/r/index.html
+#	modified:   tags/rmapshaper/index.html
+#	modified:   tags/rmarkdown/index.html
+#	modified:   tags/rvest/index.html
+#	modified:   tags/scraping/index.html
+#	modified:   tags/sf/index.html
+#	modified:   tags/shape/index.html
+#	modified:   tags/splashr/index.html
+#	modified:   tags/xml2/index.html
+#
+# Untracked files:
+#	categories/index.html
+#	data/01-Ain.dbf
+#	data/01-Ain.mif
+#	data/01-Ain.prj
+#	data/01-Ain.sbn
+#	data/01-Ain.sbx
+#	data/01-Ain.shp
+#	data/01-Ain.shx
+#	data/74-.dbf
+#	data/74-.prj
+#	data/74-.sbn
+#	data/74-.sbx
+#	data/74-.shp
+#	data/74-.shx
+#	data/FRA_adm0.cpg
+#	data/FRA_adm0.csv
+#	data/FRA_adm0.dbf
+#	data/FRA_adm0.prj
+#	data/FRA_adm0.shp
+#	data/FRA_adm0.shx
+#	data/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET.dbf
+#	data/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET.prj
+#	data/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET.sbn
+#	data/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET.sbx
+#	data/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET.shp
+#	data/swissBOUNDARIES3D_1_3_TLM_BEZIRKSGEBIET.shx
+#	data/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.dbf
+#	data/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.prj
+#	data/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.sbn
+#	data/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.sbx
+#	data/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shp
+#	data/swissBOUNDARIES3D_1_3_TLM_HOHEITSGEBIET.shx
+#	data/swissBOUNDARIES3D_1_3_TLM_HOHEITSGRENZE.dbf
+#	data/swissBOUNDARIES3D_1_3_TLM_HOHEITSGRENZE.prj
+#	data/swissBOUNDARIES3D_1_3_TLM_HOHEITSGRENZE.sbn
+#	data/swissBOUNDARIES3D_1_3_TLM_HOHEITSGRENZE.sbx
+#	data/swissBOUNDARIES3D_1_3_TLM_HOHEITSGRENZE.shp
+#	data/swissBOUNDARIES3D_1_3_TLM_HOHEITSGRENZE.shx
+#	data/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.dbf
+#	data/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.prj
+#	data/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.sbn
+#	data/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.sbx
+#	data/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shp
+#	data/swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET.shx
+#	data/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.dbf
+#	data/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.prj
+#	data/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.sbn
+#	data/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.sbx
+#	data/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.shp
+#	data/swissBOUNDARIES3D_1_3_TLM_LANDESGEBIET.shx
+#	fonts/lato-v11-latin-regular.woff
+#	fonts/lato-v11-latin-regular.woff2
+#	tags/index.html
+#

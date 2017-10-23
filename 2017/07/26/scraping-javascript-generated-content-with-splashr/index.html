@@ -9,18 +9,19 @@
 <title>Scraping javascript generated content with splashr - Invalid Input</title>
 <meta property="og:title" content="Scraping javascript generated content with splashr - Invalid Input">
 <meta property="og:type" content="article">
-<meta name="twitter:creator" content="@xvrdm">
-<meta name="twitter:site" content="@invalid_input">
 
   
   <meta name="twitter:card" content="summary">
+  <meta name="og:image" content="http://xvrdm.github.io/images/logo.png" >
   
   
 
 <meta property="description" content="Article posted by Xavier Adam, on Wednesday, July 26nd, 2017">
-<meta property="og:description" content="">
+<meta property="og:description" content="Article posted by Xavier Adam, on Wednesday, July 26nd, 2017">
 
 
+<meta name="twitter:creator" content="">
+<meta name="twitter:site" content="">
 
 
 
@@ -54,6 +55,8 @@
     <li><a href="../../../../about/">About</a></li>
     
     <li><a href="https://github.com/xvrdm">GitHub</a></li>
+    
+    <li><a href="https://twitter.com/xvrdm">Twitter</a></li>
     
   </ul>
 </nav>
@@ -93,6 +96,7 @@
 <img src="../../../../img/1707261-scrsh-count-msrvrn.png" alt="Count of offers can be found on the page." />
 <p class="caption">Count of offers can be found on the page.</p>
 </div>
+<p>Please keep in mind that I took the screenshot when I originally published the post and reran the code multiple times since. So the final scraped number might not match the screenshot.</p>
 <p>Inspect the html of the page to find the id/class of the number of results and store it in a variable. We can complete the code as below:</p>
 <pre class="r"><code># Load needed packages
 suppressMessages(library(xml2))
@@ -161,11 +165,11 @@ count &lt;- listing_html_js %&gt;%
   html_node(&quot;#count-search&quot;) %&gt;%
   html_text()
 print(paste(&quot;count value is:&quot;, count))</code></pre>
-<pre><code>## [1] &quot;count value is: (23 results)&quot;</code></pre>
+<pre><code>## [1] &quot;count value is: (21 results)&quot;</code></pre>
 <p>The number is extracted with a little regular expression and the <code>stringr</code> package:</p>
 <pre class="r"><code>offer_number &lt;- stringr::str_extract(count, &quot;[0-9]+&quot;) 
 print(paste(&quot;offer_number value is:&quot;, offer_number))</code></pre>
-<pre><code>## [1] &quot;offer_number value is: 23&quot;</code></pre>
+<pre><code>## [1] &quot;offer_number value is: 21&quot;</code></pre>
 <p>Don’t forget to stop and delete your container.</p>
 <pre class="r"><code>stop_splash(splash_container)</code></pre>
 <p>We now have the expected number of offers, which we can use to verify our final dataset (read <a href="https://xvrdm.github.io/2017/03/31/scrape-a-list-of-rental-offers-using-rvest-and-purrr/">previous post</a> to see how).</p>

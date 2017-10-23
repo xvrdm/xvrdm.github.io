@@ -9,18 +9,19 @@
 <title>Scrape linked webpages using rvest and purrr - Invalid Input</title>
 <meta property="og:title" content="Scrape linked webpages using rvest and purrr - Invalid Input">
 <meta property="og:type" content="article">
-<meta name="twitter:creator" content="@xvrdm">
-<meta name="twitter:site" content="@invalid_input">
 
   
   <meta name="twitter:card" content="summary">
+  <meta name="og:image" content="http://xvrdm.github.io/images/logo.png" >
   
   
 
 <meta property="description" content="Article posted by Xavier Adam, on Sunday, April 16nd, 2017">
-<meta property="og:description" content="">
+<meta property="og:description" content="Article posted by Xavier Adam, on Sunday, April 16nd, 2017">
 
 
+<meta name="twitter:creator" content="">
+<meta name="twitter:site" content="">
 
 
 
@@ -54,6 +55,8 @@
     <li><a href="../../../../about/">About</a></li>
     
     <li><a href="https://github.com/xvrdm">GitHub</a></li>
+    
+    <li><a href="https://twitter.com/xvrdm">Twitter</a></li>
     
   </ul>
 </nav>
@@ -170,8 +173,8 @@ surface</code></pre>
 <pre><code>## # A tibble: 2 x 2
 ##                    `URL start with:`     n
 ##                                &lt;chr&gt; &lt;int&gt;
-## 1           /en/apartments-for-rent/    16
-## 2 /en/residential-property-for-rent/     8</code></pre>
+## 1           /en/apartments-for-rent/    15
+## 2 /en/residential-property-for-rent/     7</code></pre>
 <p>Most URLs follow the pattern <code>/en/apartments-for-rent/&lt;address&gt;--&lt;id&gt;</code> but a few look like <code>/en/residential-property-for-rent/&lt;address&gt;--&lt;id&gt;</code>. If we open one, we can see that the page layout is different.</p>
 <div class="figure">
 <img src="../../../../img/1704161-scrsh-msrvrn-property-source.png" alt="Screenshot of source code for residential detail webpage" />
