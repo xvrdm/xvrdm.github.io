@@ -6,8 +6,411 @@
     <description>Recent content in Posts on Invalid Input</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 23 Oct 2017 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 26 Oct 2017 00:00:00 +0000</lastBuildDate>
     <atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Getting hy with pandas</title>
+      <link>/2017/10/26/getting-hy-with-pandas/</link>
+      <pubDate>Thu, 26 Oct 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/2017/10/26/getting-hy-with-pandas/</guid>
+      <description>&lt;div id=&#34;tldr&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;TL;DR&lt;/h2&gt;
+&lt;p&gt;In this post, we scratch the surface of &lt;a href=&#34;http://docs.hylang.org/en/stable/&#34;&gt;Hy&lt;/a&gt;, a lisp dialect for python, by converting a pandas pipeline. The post assumes some familiarity with pandas.&lt;/p&gt;
+&lt;div class=&#34;figure&#34;&gt;
+&lt;img src=&#34;../img/171026-hy-pandas-social.png&#34; /&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;I find &lt;a href=&#34;http://docs.hylang.org/en/stable/&#34;&gt;the Hy project&lt;/a&gt; really interesting. From the website:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Hy is a wonderful dialect of Lisp that’s embedded in Python. Since Hy transforms its Lisp code into the Python Abstract Syntax Tree, you have the whole beautiful world of Python at your fingertips, in Lisp form!&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;If you rely on some python libraries, but wish you could write code closer to clojure, why not try it out?&lt;/p&gt;
+&lt;p&gt;In this post, we will convert a small pandas pipeline from python to Hy.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;lisps&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Lisps&lt;/h2&gt;
+&lt;p&gt;From &lt;a href=&#34;https://en.wikipedia.org/wiki/Lisp_(programming_language)#Syntax_and_semantics&#34;&gt;Lisp’s wikipedia page&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Lisp is an expression oriented language. Unlike most other languages, no distinction is made between “expressions” and “statements”; all code and data are written as expressions. When an expression is evaluated, it produces a value (in Common Lisp, possibly multiple values), which can then be embedded into other expressions. Each value can be any data type.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;If you have never seen a Lisp before, start with &lt;a href=&#34;http://docs.hylang.org/en/stable/tutorial.html#basic-intro-to-lisp-for-pythonistas&#34;&gt;Hy’s intro&lt;/a&gt;. The first pages of &lt;a href=&#34;https://www.braveclojure.com/do-things/&#34;&gt;“Clojure for the Brave and True”&lt;/a&gt; also provide an entertaining introduction to Lisp syntax.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;hy-syntax&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Hy syntax&lt;/h2&gt;
+&lt;p&gt;To discover Hy, you can write small Hy scripts and run the &lt;a href=&#34;http://docs.hylang.org/en/stable/language/cli.html#hy2py&#34;&gt;&lt;code&gt;hy2py &amp;lt;hy-file&amp;gt;&lt;/code&gt;&lt;/a&gt; command on it without flags. This will show you the resulting python code. The &lt;a href=&#34;http://docs.hylang.org/en/stable/quickstart.html&#34;&gt;Hy REPL&lt;/a&gt; is also helpful for messing around.&lt;/p&gt;
+&lt;p&gt;While trying to write my first Hy script, I had a few struggles.&lt;/p&gt;
+&lt;div id=&#34;badly-closed-parenthesis&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Badly closed parenthesis&lt;/h3&gt;
+&lt;p&gt;I guess it’s a common problem with Lisp. I often made error and got messages like below.&lt;/p&gt;
+&lt;p&gt;For too many parenthesis:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;LexException: Ran into a RPAREN where it wasn&amp;#39;t expected.&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;For too few parenthesis:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;LexException: Premature end of input&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;double-quote-your-strings&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Double quote your strings&lt;/h3&gt;
+&lt;p&gt;In Hy, strings are &lt;strong&gt;written with double quotes&lt;/strong&gt;. Single quotes are used for something completely different. I fell into that trap again and again, raising exceptions like:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;LexException: Could not identify the next token.&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;accessing-methods-vs-attributes&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Accessing methods vs attributes&lt;/h3&gt;
+&lt;p&gt;Basic function call in Hy goes like this (note that arguments are only separated by spaces):&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;(&amp;lt;function-name&amp;gt; &amp;lt;arg1&amp;gt; &amp;lt;arg2&amp;gt; ...)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you need to use named arguments, you prefix their names with a &lt;code&gt;:&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;(&amp;lt;function-name&amp;gt; &amp;lt;arg1&amp;gt; :name-for-arg2 &amp;lt;arg2&amp;gt; ...)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;What about methods? How do you translate something like &lt;code&gt;&amp;quot;my-string-to-split&amp;quot;.split(&amp;quot;-&amp;quot;)&lt;/code&gt; to Hy. If you want to use the &lt;a href=&#34;https://www.tutorialspoint.com/python/string_split.htm&#34;&gt;&lt;code&gt;&amp;lt;str&amp;gt;.split(&amp;lt;del&amp;gt;)&lt;/code&gt;&lt;/a&gt; method on a string, you use &lt;code&gt;.split&lt;/code&gt; as the function name, place the string you want to use &lt;code&gt;.split&lt;/code&gt; on as the first argument and finally add the argument(s) for &lt;code&gt;.split&lt;/code&gt; (the delimeter) as the second argument to your expression.&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;(.split &amp;quot;my-string-to-split&amp;quot; &amp;quot;-&amp;quot;)
+=&amp;gt; [&amp;quot;my&amp;quot;, &amp;quot;string&amp;quot;, &amp;quot;to&amp;quot;, &amp;quot;split&amp;quot;]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If the target of your method is saved on a variable, you can actually use a more familiar syntax.&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;(setv mystr &amp;quot;my string to split&amp;quot;)
+(mystr.split  &amp;quot; &amp;quot;)
+=&amp;gt; [&amp;quot;my&amp;quot;, &amp;quot;string&amp;quot;, &amp;quot;to&amp;quot;, &amp;quot;split&amp;quot;]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is less flexible (&lt;strong&gt;needs to be a variable&lt;/strong&gt;) but can be convenient to access methods on imported packages.&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;(import os)
+
+(.listdir os)
+=&amp;gt; [&amp;#39;file1&amp;#39;, &amp;#39;file2&amp;#39;,...]
+
+;; or alternatively
+(os.listdir)
+=&amp;gt; [&amp;#39;file1&amp;#39;, &amp;#39;file2&amp;#39;,...]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Note that we do not use &lt;code&gt;(.listdir() os)&lt;/code&gt; or &lt;code&gt;(os.listdir())&lt;/code&gt;. The outer wrapping of the expression between parenthesis is already what calls the &lt;code&gt;.listdir&lt;/code&gt; function.&lt;/p&gt;
+&lt;p&gt;What about attributes? What if we &lt;strong&gt;do not want&lt;/strong&gt; to call a function? Just omit the parenthesis around the attribute call. For example, a successful &lt;a href=&#34;http://docs.python-requests.org/en/master/user/quickstart/#make-a-request&#34;&gt;&lt;code&gt;get&lt;/code&gt;&lt;/a&gt; request to a webpage done with the &lt;a href=&#34;http://docs.python-requests.org/en/master/&#34;&gt;&lt;code&gt;requests&lt;/code&gt;&lt;/a&gt; package will have a &lt;a href=&#34;http://docs.python-requests.org/en/master/user/quickstart/#response-content&#34;&gt;&lt;code&gt;text&lt;/code&gt;&lt;/a&gt; attribute containing the html of the page.&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;(import requests)
+
+(requests.get &amp;quot;https://www.duckduckgo.com&amp;quot;).text
+=&amp;gt; ERROR - &amp;#39;cannot access attribute on anything other than a name&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Right… We saw before that the straight dot-notation only works on variable. Let’s try with a variable:&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;(import requests)
+
+(setv r (requests.get &amp;quot;https://www.duckduckgo.com&amp;quot;))
+r.text
+=&amp;gt; &amp;#39;&amp;lt;!DOCTYPE html&amp;gt;\n&amp;lt;!--[if IEMobi...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If we don’t want to set a variable and keep a “functional” style (which has many advantages), we can use the &lt;a href=&#34;http://docs.hylang.org/en/stable/language/api.html#id1&#34;&gt;&lt;code&gt;.&lt;/code&gt; function&lt;/a&gt;, which is used to perform attribute access on objects.&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;(import requests)
+
+(. (requests.get &amp;quot;https://www.duckduckgo.com&amp;quot;) text)
+=&amp;gt; &amp;#39;&amp;lt;!DOCTYPE html&amp;gt;\n&amp;lt;!--[if IEMobi...&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;chaining-function&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Chaining function&lt;/h3&gt;
+&lt;p&gt;In python, if you don’t want to save every single steps while you apply transformation to a variable, you have two options.&lt;/p&gt;
+&lt;p&gt;If you are dealing with functions, you can nest them.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;var1 = x
+var2 = func1(var1)
+var = func2(var2)
+
+# becomes
+var = func2(func1(x))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you are dealing with methods, you can chain them.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;var1 = x
+var2 = var1.method1()
+var = var2.method2()
+
+# becomes
+var = x.method1().method2()
+# also work on multiple line if you use parenthesis
+var = (x.method1()
+        .method2())&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Unlike nesting, chaining has the advantage of letting you read code in the execution order (deeply nested expressions are hard to read). However, chaining only works with methods and each method must return the type of object on which the next method is defined.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# This works!
+(&amp;quot;blabla  &amp;quot;.upper()  #.upper is defined on str and return str
+           .strip()) #.strip is defined on str and return str
+# =&amp;gt; &amp;quot;BLABLA&amp;quot;
+
+# This doesn&amp;#39;t work!
+([1,3,2].sort()      #.sort is defined on list and return None
+        .append(4))  #.append is defined on list, not None
+# =&amp;gt; AttributeError: 
+# =&amp;gt; &amp;#39;NoneType&amp;#39; object has no attribute &amp;#39;append&amp;#39;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;One of the nicest pattern in Lisp is the ability to use &lt;a href=&#34;http://docs.hylang.org/en/stable/language/api.html#id2&#34;&gt;&lt;code&gt;threading macro (-&amp;gt;)&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Threading macro (-&amp;gt;) is used to avoid nesting of expressions. The threading macro inserts each expression into the next expression’s first argument place.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;When using threading macro, each expression gets piped into the next expression as its first argument (you don’t even have to write it), leading to code that can be read in its evaluation order.&lt;/p&gt;
+&lt;p&gt;This can replace nesting,&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;func2(func1(x))
+
+# becomes
+(-&amp;gt; x
+  (func1)
+  (func2))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;chaining,&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;(x.method1()
+  .method2())
+
+# becomes
+
+(-&amp;gt; x
+  (.method1)
+  (.method2))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;or a mix of both! Note that you don’t write the first argument, so you can start directly with the second one.&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;func1(x.method1(), &amp;lt;arg2-name&amp;gt;=&amp;lt;val-arg2&amp;gt;)
+
+# becomes
+
+(-&amp;gt; x
+  (.method1)
+  (func1 :arg2-name &amp;lt;val-arg2&amp;gt;))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;lambda-function&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Lambda function&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;http://docs.hylang.org/en/stable/language/api.html?highlight=lambda#fn&#34;&gt;fn function&lt;/a&gt; in hy (equivalent of python’s &lt;code&gt;lambda&lt;/code&gt;) are written like below.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;lambda x: 2017 - x.year_of_birth&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;becomes&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;(fn [x] (- 2017 x.year_of_birth))&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;pandas-pipeline&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Pandas pipeline&lt;/h2&gt;
+&lt;p&gt;Pandas is a vast library. The pipeline below just use what I consider to be a subset of common operations on dataframe:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Creating a dataframe from raw data (we will use an html table with &lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_html.html&#34;&gt;&lt;code&gt;pd.read_html&lt;/code&gt;&lt;/a&gt;, but you could start from a csv with &lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_csv.html#pandas.read_csv&#34;&gt;&lt;code&gt;pd.read_csv&lt;/code&gt;&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Renaming columns (&lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.rename.html&#34;&gt;&lt;code&gt;df.rename&lt;/code&gt;&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Removing columns (&lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.drop.html&#34;&gt;&lt;code&gt;df.drop&lt;/code&gt;&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Filtering columns (&lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.filter.html&#34;&gt;&lt;code&gt;df.filter&lt;/code&gt;&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Creating columns (&lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.assign.html&#34;&gt;&lt;code&gt;df.assign&lt;/code&gt;&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Filtering rows (&lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.filter.html&#34;&gt;&lt;code&gt;df.filter&lt;/code&gt;&lt;/a&gt; and &lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.loc.html&#34;&gt;&lt;code&gt;.loc&lt;/code&gt;&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Grouping Rows and summarizing columns (&lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.groupby.html&#34;&gt;&lt;code&gt;df.groupby&lt;/code&gt;&lt;/a&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To try out a nice range of functions, we will do some useless operations, like renaming columns before droping them.&lt;/p&gt;
+&lt;p&gt;We will use a table listing the elected candidates of the &lt;a href=&#34;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&#34;&gt;2015 Swiss National Council&lt;/a&gt; and try to get the average age of the candidates for the french-speaking “cantons” (political districts).&lt;/p&gt;
+&lt;div class=&#34;figure&#34;&gt;
+&lt;img src=&#34;../img/171026-hy-pandas-scrsh.png&#34; alt=&#34;Source: https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&#34; /&gt;
+&lt;p class=&#34;caption&#34;&gt;Source: &lt;a href=&#34;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&#34; class=&#34;uri&#34;&gt;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;This table’s HTML is poorly formatted: although the column headers get a special styling, they are not &lt;code&gt;&amp;lt;th&amp;gt;&lt;/code&gt; but just &lt;code&gt;&amp;lt;tr&amp;gt;&lt;/code&gt; tags, like the rows.&lt;/p&gt;
+&lt;pre class=&#34;html&#34;&gt;&lt;code&gt;&amp;lt;h2&amp;gt;Les candidats élus&amp;lt;/h2&amp;gt;
+&amp;lt;table class=&amp;quot;nrwtab2&amp;quot;&amp;gt;
+&amp;lt;tr&amp;gt;
+&amp;lt;td width=&amp;quot;200px&amp;quot; bgcolor=&amp;quot;#414141&amp;quot; align=&amp;quot;left&amp;quot;&amp;gt;&amp;lt;font color=&amp;quot;#FFFFFF&amp;quot;&amp;gt;Nom&amp;lt;/font&amp;gt;&amp;lt;/td&amp;gt;
+&amp;lt;td width=&amp;quot;50px&amp;quot; bgcolor=&amp;quot;#414141&amp;quot; align=&amp;quot;center&amp;quot;&amp;gt;&amp;lt;font color=&amp;quot;#FFFFFF&amp;quot;&amp;gt;Né&amp;lt;/font&amp;gt;&amp;lt;/td&amp;gt;
+&amp;lt;td width=&amp;quot;500px&amp;quot; bgcolor=&amp;quot;#414141&amp;quot; align=&amp;quot;left&amp;quot;&amp;gt;&amp;lt;font color=&amp;quot;#FFFFFF&amp;quot;&amp;gt;Liste&amp;lt;/font&amp;gt;&amp;lt;/td&amp;gt;
+&amp;lt;td width=&amp;quot;50px&amp;quot; bgcolor=&amp;quot;#414141&amp;quot; align=&amp;quot;center&amp;quot;&amp;gt;&amp;lt;font color=&amp;quot;#FFFFFF&amp;quot;&amp;gt;Canton&amp;lt;/font&amp;gt;&amp;lt;/td&amp;gt;
+&amp;lt;/tr&amp;gt;
+&amp;lt;tr&amp;gt;
+&amp;lt;td width=&amp;quot;200px&amp;quot; bgcolor=&amp;quot;#FFFFFF&amp;quot; align=&amp;quot;left&amp;quot;&amp;gt;Addor Jean-Luc&amp;lt;/td&amp;gt;
+&amp;lt;td width=&amp;quot;50px&amp;quot; bgcolor=&amp;quot;#FFFFFF&amp;quot; align=&amp;quot;center&amp;quot;&amp;gt;1964&amp;lt;/td&amp;gt;
+&amp;lt;td width=&amp;quot;500px&amp;quot; bgcolor=&amp;quot;#FFFFFF&amp;quot; align=&amp;quot;left&amp;quot;&amp;gt;UDC Valais Central&amp;lt;/td&amp;gt;
+&amp;lt;td width=&amp;quot;50px&amp;quot; bgcolor=&amp;quot;#FFFFFF&amp;quot; align=&amp;quot;center&amp;quot;&amp;gt;VS&amp;lt;/td&amp;gt;
+&amp;lt;/tr&amp;gt;
+...&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So, when using &lt;code&gt;read_html&lt;/code&gt;, we will need to specify that the headers are stored in the first row (at index 0). In python, the pipeline should look similar to the below :&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;def get_avg_age_of_elected():
+    url = &amp;#39;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&amp;#39;
+    # Scrape the HTML from the URL
+    html = requests.get(url).text
+    # Get a list of html tables converted to dataframe
+    dfs = pd.read_html(html, header=0) 
+    # Get first dataframe in list 
+    df = dfs[0]  
+    # Rename columns to lowercase
+    df = df.rename(columns=str.lower) 
+    # Translate column names to english
+    df = df.rename(columns={&amp;#39;nom&amp;#39;: &amp;#39;name&amp;#39;, 
+                            &amp;#39;né&amp;#39;: &amp;#39;year_of_birth&amp;#39;, 
+                            &amp;#39;liste&amp;#39;: &amp;#39;political_group&amp;#39;})
+    # Drop not-needed columns
+    df = df.drop([&amp;#39;name&amp;#39;, &amp;#39;political_group&amp;#39;], axis=1) 
+    # Calculate an age column based on year_of_birth
+    df = df.assign(age=(lambda x: (2017 - x.year_of_birth)))
+    # Filter columns to keep only &amp;#39;canton&amp;#39; and &amp;#39;age&amp;#39;
+    df = df.filter(items=[&amp;#39;canton&amp;#39;, &amp;#39;age&amp;#39;], axis=1)
+    # Group by cantons
+    df = df.groupby([&amp;#39;canton&amp;#39;])
+    # Calculated the mean in remaining column (&amp;#39;age&amp;#39;)
+    # on the grouped-by-canton df
+    df = df.mean()
+    # Filter rows to keep only french-speaking cantons
+    # (after our groupby, &amp;#39;canton&amp;#39; has become the row index)
+    df = df.filter(regex=&amp;#39;GE|VS|VD|FR|NE|JU&amp;#39;, axis=0))
+    return df&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is quite long-winded. It would be more elegant to use &lt;a href=&#34;https://tomaugspurger.github.io/method-chaining.html&#34;&gt;method-chaining&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;def get_avg_age_of_elected():
+    url = &amp;#39;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&amp;#39;
+    html = requests.get(url).text
+    dfs = pd.read_html(html, header=0) 
+    df = (dfs[0]  
+           .rename(columns=str.lower)
+           .rename(columns={&amp;#39;nom&amp;#39;: &amp;#39;name&amp;#39;, 
+                            &amp;#39;né&amp;#39;: &amp;#39;year_of_birth&amp;#39;, 
+                            &amp;#39;liste&amp;#39;: &amp;#39;political_group&amp;#39;}) 
+           .drop([&amp;#39;name&amp;#39;, &amp;#39;political_group&amp;#39;], axis=1)
+           .assign(age=(lambda x: (2017 - x.year_of_birth)))
+           .filter(items=[&amp;#39;canton&amp;#39;, &amp;#39;age&amp;#39;])
+           .groupby([&amp;#39;canton&amp;#39;])
+           .mean()
+           .filter(regex=&amp;#39;GE|VS|VD|FR|NE|JU&amp;#39;, axis=0))
+    return df
+    
+get_avg_age_of_elected()
+
+# =&amp;gt;            age
+# canton           
+# FR      56.714286
+# GE      51.000000
+# JU      62.500000
+# NE      55.500000
+# VD      51.833333
+# VS      44.750000&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;hy-pipeline&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Hy pipeline&lt;/h2&gt;
+&lt;p&gt;A strict translation to hy could look like:&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;(import [pandas :as pd])
+(import requests)
+
+(defn get_avg_age_of_elected []
+  (setv url &amp;quot;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&amp;quot;)
+  (setv html (request.get url))
+  (setv dfs (pd.read_html html :header 0))
+  (-&amp;gt; dfs
+    (.        [0])
+    (.rename  :columns str.lower) 
+    (.rename  :columns {&amp;quot;nom&amp;quot; &amp;quot;name&amp;quot; 
+                        &amp;quot;né&amp;quot; &amp;quot;year_of_birth&amp;quot;
+                        &amp;quot;list&amp;quot; &amp;quot;political_group&amp;quot;})
+    (.drop    [&amp;quot;name&amp;quot; &amp;quot;political_group&amp;quot;] :axis 1)
+    (.assign  :age (fn [x] (- 2017 x.year_of_birth)))
+    (.filter  :items [&amp;quot;canton&amp;quot; &amp;quot;age&amp;quot;])
+    (.groupby [&amp;quot;canton&amp;quot;])
+    (.mean)
+    (.filter  :regex &amp;quot;GE|VS|VD|FR|NE|JU&amp;quot; :axis 0))))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s leverage some of Hy strengths. Firstly we can express the first 3 variables in the threading macro, without needing nesting. There is also a &lt;a href=&#34;http://docs.hylang.org/en/stable/language/api.html?highlight=lambda#first&#34;&gt;&lt;code&gt;first&lt;/code&gt;&lt;/a&gt; function that return the first element of a collection and can replace &lt;code&gt;(. [0])&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;(import [pandas :as pd])
+(import requests)
+
+(defn get_avg_age_of_elected []
+  (-&amp;gt; &amp;quot;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&amp;quot;
+    (requests.get)
+    (. text)
+    (pd.read_html :header 0)
+    (first)
+    (.rename      :columns str.lower) 
+    (.rename      :columns {&amp;quot;nom&amp;quot; &amp;quot;name&amp;quot; 
+                            &amp;quot;né&amp;quot; &amp;quot;year_of_birth&amp;quot;
+                            &amp;quot;list&amp;quot; &amp;quot;political_group&amp;quot;})
+    (.drop        [&amp;quot;name&amp;quot; &amp;quot;political_group&amp;quot;] :axis 1)
+    (.assign      :age (fn [x] (- 2017 x.year_of_birth)))
+    (.filter      :items [&amp;quot;canton&amp;quot; &amp;quot;age&amp;quot;])
+    (.groupby     [&amp;quot;canton&amp;quot;])
+    (.mean)
+    (.filter      :regex &amp;quot;GE|VS|VD|FR|NE|JU&amp;quot; :axis 0))))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Secondly, &lt;a href=&#34;http://docs.hylang.org/en/stable/language/api.html?highlight=lambda#fn&#34;&gt;&lt;code&gt;fn&lt;/code&gt;&lt;/a&gt; functions (the &lt;code&gt;lambda&lt;/code&gt; equivalent) can be on multiple lines and have docstrings! Since we aren’t saving the function, the docstring isn’t very useful for &lt;code&gt;help&lt;/code&gt; but it makes a nice alternative to comments.&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;(import [pandas :as pd])
+(import requests)
+
+(defn get_avg_age_of_elected []
+  (-&amp;gt; &amp;quot;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&amp;quot;
+    (requests.get)
+    (. text)
+    (pd.read_html :header 0)
+    (first)
+    (.rename      :columns str.lower) 
+    (.rename      :columns {&amp;quot;nom&amp;quot; &amp;quot;name&amp;quot; 
+                            &amp;quot;né&amp;quot; &amp;quot;year_of_birth&amp;quot;
+                            &amp;quot;list&amp;quot; &amp;quot;political_group&amp;quot;})
+    (.drop        [&amp;quot;name&amp;quot; &amp;quot;political_group&amp;quot;] :axis 1)
+    (.assign      :age (fn [x] 
+                        &amp;quot;Calculate rough age&amp;quot;
+                        (- 2017 x.year_of_birth)))
+    (.filter      :items [&amp;quot;canton&amp;quot; &amp;quot;age&amp;quot;])
+    (.groupby     [&amp;quot;canton&amp;quot;])
+    (.mean)
+    (.filter      :regex &amp;quot;GE|VS|VD|FR|NE|JU&amp;quot; :axis 0))))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Last but not least, there are some patterns in pandas that would break a nice chain of methods. For example, we used &lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.filter.html&#34;&gt;&lt;code&gt;.filter&lt;/code&gt;&lt;/a&gt; to filter rows. This only works on indexes so we applied the method after &lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.groupby.html&#34;&gt;&lt;code&gt;df.groupby&lt;/code&gt;&lt;/a&gt; (which made column &lt;code&gt;canton&lt;/code&gt; the row index). A more common way to filter rows is to use &lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/indexing.html#selection-by-label&#34;&gt;&lt;code&gt;.loc&lt;/code&gt;&lt;/a&gt;. But &lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/indexing.html#selection-by-label&#34;&gt;&lt;code&gt;.loc&lt;/code&gt;&lt;/a&gt; isn’t a method like &lt;a href=&#34;http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.filter.html&#34;&gt;&lt;code&gt;.filter&lt;/code&gt;&lt;/a&gt;, it’s an attribute that takes an input. That’s easy to miss, I definitely did and wasn’t the only one: as of today, the only question &lt;a href=&#34;https://stackoverflow.com/questions/33656372/using-pandas-loc-in-hy&#34;&gt;about hy+pandas in stackoverflow&lt;/a&gt; is about this.&lt;/p&gt;
+&lt;p&gt;The other tricky part is that &lt;code&gt;.loc&lt;/code&gt; takes an indexer as input, and this indexer often refers to the dataframe being filtered. In vanilla python, we would have to break our chain to be able to use the dataframe resulting from the first 3 methods in our indexer.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# This won&amp;#39;t work
+df = (df.method1()
+        .method2()
+        .method3())
+        .loc[df.colx == y] # The indexer refer to the original df
+        .method4()
+        .method5())
+
+# This would work
+df1 = (df.method1()
+        .method2()
+        .method3())
+
+df2 = df1.loc[df1.colx == y]
+
+df3 = (df2.method4()
+          .method5())&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;When we applied &lt;code&gt;(. text)&lt;/code&gt; to the response from our &lt;code&gt;requests.get&lt;/code&gt; request, we saw that we can access attributes in the threading macro. However, the threading macro only puts the result of the previous function as the first argument, so how can we reuse it in the indexer? Luckily, there is an alternative to &lt;code&gt;(-&amp;gt;)&lt;/code&gt;: &lt;a href=&#34;http://docs.hylang.org/en/stable/language/api.html#as&#34;&gt;&lt;code&gt;(as-&amp;gt;)&lt;/code&gt;&lt;/a&gt;. &lt;code&gt;(as-&amp;gt;)&lt;/code&gt; is similar to &lt;code&gt;(-&amp;gt;)&lt;/code&gt; but after the first expression you specify a name for the result being passed around (e.g &lt;code&gt;it&lt;/code&gt;). It requires a bit more typing because you now have to enter the first argument (&lt;code&gt;it&lt;/code&gt;) for each function. But since this argument now has a name (&lt;code&gt;it&lt;/code&gt;), you can reuse it multiple times.&lt;/p&gt;
+&lt;pre class=&#34;hy&#34;&gt;&lt;code&gt;(import [pandas :as pd])
+(import requests)
+
+(defn get_avg_age_of_elected []
+  (as-&amp;gt; &amp;quot;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&amp;quot; it
+    (requests.get it)
+    (. it text)
+    (pd.read_html it :header 0)
+    (first it)
+    (.rename it      :columns str.lower) 
+    (.rename it      :columns {&amp;quot;nom&amp;quot; &amp;quot;name&amp;quot; 
+                               &amp;quot;né&amp;quot; &amp;quot;year_of_birth&amp;quot;
+                               &amp;quot;list&amp;quot; &amp;quot;political_group&amp;quot;})
+    (.drop it        [&amp;quot;name&amp;quot; &amp;quot;political_group&amp;quot;] :axis 1)
+    (. it loc [(isin it.canton [&amp;#39;GE&amp;#39;, &amp;#39;VS&amp;#39;, &amp;#39;VD&amp;#39;, &amp;#39;FR&amp;#39;, &amp;#39;NE&amp;#39;, &amp;#39;JU&amp;#39;])])
+    (.assign it      :age (fn [x] 
+                          &amp;quot;Calculate rough age&amp;quot;
+                          (- 2017 x.year_of_birth)))
+    (.filter it      :items [&amp;quot;canton&amp;quot; &amp;quot;age&amp;quot;])
+    (.groupby it    [&amp;quot;canton&amp;quot;])
+    (.mean it))))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s use &lt;code&gt;hy2py&lt;/code&gt; to check the converted python code. Note that if you use docstring in your &lt;code&gt;fn&lt;/code&gt;, they will be converted to function (&lt;code&gt;def&lt;/code&gt;) rather than &lt;code&gt;lambda&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;python&#34;&gt;&lt;code&gt;# Without docstring in fn
+import pandas as pd
+import requests
+
+def get_avg_age_of_elected():
+    it = &amp;#39;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&amp;#39;
+    it = requests.get(it)
+    it = it.text
+    it = pd.read_html(it, header=0)
+    it = it[0]
+    it = it.rename(columns=str.lower)
+    it = it.rename(columns={&amp;#39;nom&amp;#39;: &amp;#39;name&amp;#39;, &amp;#39;né&amp;#39;: &amp;#39;year_of_birth&amp;#39;, })
+    it = it.drop([&amp;#39;name&amp;#39;, &amp;#39;liste&amp;#39;], axis=1)
+    it = it.assign(age=(lambda x: (2017 - x.year_of_birth)))
+    it = it.filter(items=[&amp;#39;canton&amp;#39;, &amp;#39;age&amp;#39;])
+    it = it.loc[it.canton.isin([&amp;#39;GE&amp;#39;, &amp;#39;VS&amp;#39;, &amp;#39;VD&amp;#39;, &amp;#39;FR&amp;#39;, &amp;#39;NE&amp;#39;, &amp;#39;JU&amp;#39;])]
+    it = it.groupby([&amp;#39;canton&amp;#39;])
+    it = it.mean()
+    return it
+
+# With docstring in fn
+import pandas as pd
+import requests
+
+def get_avg_age_of_elected():
+    it = &amp;#39;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&amp;#39;
+    it = requests.get(it)
+    it = it.text
+    it = pd.read_html(it, header=0)
+    it = it[0]
+    it = it.rename(columns=str.lower)
+    it = it.rename(columns={&amp;#39;nom&amp;#39;: &amp;#39;name&amp;#39;, &amp;#39;né&amp;#39;: &amp;#39;year_of_birth&amp;#39;, })
+    it = it.drop([&amp;#39;name&amp;#39;, &amp;#39;liste&amp;#39;], axis=1)
+
+    def _hy_anon_fn_1(x):
+        &amp;#39;Calculate rough age&amp;#39;
+        return (2017 - x.year_of_birth)
+    it = it.assign(age=_hy_anon_fn_1)
+    it = it.filter(items=[&amp;#39;canton&amp;#39;, &amp;#39;age&amp;#39;])
+    it = it.loc[it.canton.isin([&amp;#39;GE&amp;#39;, &amp;#39;VS&amp;#39;, &amp;#39;VD&amp;#39;, &amp;#39;FR&amp;#39;, &amp;#39;NE&amp;#39;, &amp;#39;JU&amp;#39;])]
+    it = it.groupby([&amp;#39;canton&amp;#39;])
+    it = it.mean()
+    return it&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Socialize your blogdown</title>

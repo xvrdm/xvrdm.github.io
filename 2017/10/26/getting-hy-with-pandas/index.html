@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.18.1" />
+
+
+<title>Getting hy with pandas - Invalid Input</title>
+<meta property="og:title" content="Getting hy with pandas - Invalid Input">
+<meta property="og:type" content="article">
+
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="og:image" content="http://xvrdm.github.io//img/171026-hy-pandas-social.png" >
+  
+  
+
+<meta property="description" content="A short exploration of hylang for pandas pipeline.">
+<meta property="og:description" content="A short exploration of hylang for pandas pipeline.">
+
+
+<meta name="twitter:creator" content="">
+<meta name="twitter:site" content="">
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="../../../../css/fonts.css" media="all">
+<link rel="stylesheet" href="../../../../css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="../../../../" class="nav-logo">
+    <img src="../../../../images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="../../../../about/">About</a></li>
+    
+    <li><a href="https://github.com/xvrdm">GitHub</a></li>
+    
+    <li><a href="https://twitter.com/xvrdm">Twitter</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">11 min read</span>
+    
+
+    <h1 class="article-title">Getting hy with pandas</h1>
+
+    
+    <span class="article-date">2017/10/26</span>
+    
+
+    <div class="article-content">
+      <div id="tldr" class="section level2">
+<h2>TL;DR</h2>
+<p>In this post, we scratch the surface of <a href="http://docs.hylang.org/en/stable/">Hy</a>, a lisp dialect for python, by converting a pandas pipeline. The post assumes some familiarity with pandas.</p>
+<div class="figure">
+<img src="../../../../img/171026-hy-pandas-social.png" />
+
+</div>
+</div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>I find <a href="http://docs.hylang.org/en/stable/">the Hy project</a> really interesting. From the website:</p>
+<blockquote>
+<p>Hy is a wonderful dialect of Lisp that’s embedded in Python. Since Hy transforms its Lisp code into the Python Abstract Syntax Tree, you have the whole beautiful world of Python at your fingertips, in Lisp form!</p>
+</blockquote>
+<p>If you rely on some python libraries, but wish you could write code closer to clojure, why not try it out?</p>
+<p>In this post, we will convert a small pandas pipeline from python to Hy.</p>
+</div>
+<div id="lisps" class="section level2">
+<h2>Lisps</h2>
+<p>From <a href="https://en.wikipedia.org/wiki/Lisp_(programming_language)#Syntax_and_semantics">Lisp’s wikipedia page</a>:</p>
+<blockquote>
+<p>Lisp is an expression oriented language. Unlike most other languages, no distinction is made between “expressions” and “statements”; all code and data are written as expressions. When an expression is evaluated, it produces a value (in Common Lisp, possibly multiple values), which can then be embedded into other expressions. Each value can be any data type.</p>
+</blockquote>
+<p>If you have never seen a Lisp before, start with <a href="http://docs.hylang.org/en/stable/tutorial.html#basic-intro-to-lisp-for-pythonistas">Hy’s intro</a>. The first pages of <a href="https://www.braveclojure.com/do-things/">“Clojure for the Brave and True”</a> also provide an entertaining introduction to Lisp syntax.</p>
+</div>
+<div id="hy-syntax" class="section level2">
+<h2>Hy syntax</h2>
+<p>To discover Hy, you can write small Hy scripts and run the <a href="http://docs.hylang.org/en/stable/language/cli.html#hy2py"><code>hy2py &lt;hy-file&gt;</code></a> command on it without flags. This will show you the resulting python code. The <a href="http://docs.hylang.org/en/stable/quickstart.html">Hy REPL</a> is also helpful for messing around.</p>
+<p>While trying to write my first Hy script, I had a few struggles.</p>
+<div id="badly-closed-parenthesis" class="section level3">
+<h3>Badly closed parenthesis</h3>
+<p>I guess it’s a common problem with Lisp. I often made error and got messages like below.</p>
+<p>For too many parenthesis:</p>
+<pre><code>LexException: Ran into a RPAREN where it wasn&#39;t expected.</code></pre>
+<p>For too few parenthesis:</p>
+<pre><code>LexException: Premature end of input</code></pre>
+</div>
+<div id="double-quote-your-strings" class="section level3">
+<h3>Double quote your strings</h3>
+<p>In Hy, strings are <strong>written with double quotes</strong>. Single quotes are used for something completely different. I fell into that trap again and again, raising exceptions like:</p>
+<pre><code>LexException: Could not identify the next token.</code></pre>
+</div>
+<div id="accessing-methods-vs-attributes" class="section level3">
+<h3>Accessing methods vs attributes</h3>
+<p>Basic function call in Hy goes like this (note that arguments are only separated by spaces):</p>
+<pre><code>(&lt;function-name&gt; &lt;arg1&gt; &lt;arg2&gt; ...)</code></pre>
+<p>If you need to use named arguments, you prefix their names with a <code>:</code>.</p>
+<pre><code>(&lt;function-name&gt; &lt;arg1&gt; :name-for-arg2 &lt;arg2&gt; ...)</code></pre>
+<p>What about methods? How do you translate something like <code>&quot;my-string-to-split&quot;.split(&quot;-&quot;)</code> to Hy. If you want to use the <a href="https://www.tutorialspoint.com/python/string_split.htm"><code>&lt;str&gt;.split(&lt;del&gt;)</code></a> method on a string, you use <code>.split</code> as the function name, place the string you want to use <code>.split</code> on as the first argument and finally add the argument(s) for <code>.split</code> (the delimeter) as the second argument to your expression.</p>
+<pre class="hy"><code>(.split &quot;my-string-to-split&quot; &quot;-&quot;)
+=&gt; [&quot;my&quot;, &quot;string&quot;, &quot;to&quot;, &quot;split&quot;]</code></pre>
+<p>If the target of your method is saved on a variable, you can actually use a more familiar syntax.</p>
+<pre class="hy"><code>(setv mystr &quot;my string to split&quot;)
+(mystr.split  &quot; &quot;)
+=&gt; [&quot;my&quot;, &quot;string&quot;, &quot;to&quot;, &quot;split&quot;]</code></pre>
+<p>This is less flexible (<strong>needs to be a variable</strong>) but can be convenient to access methods on imported packages.</p>
+<pre class="hy"><code>(import os)
+
+(.listdir os)
+=&gt; [&#39;file1&#39;, &#39;file2&#39;,...]
+
+;; or alternatively
+(os.listdir)
+=&gt; [&#39;file1&#39;, &#39;file2&#39;,...]</code></pre>
+<p>Note that we do not use <code>(.listdir() os)</code> or <code>(os.listdir())</code>. The outer wrapping of the expression between parenthesis is already what calls the <code>.listdir</code> function.</p>
+<p>What about attributes? What if we <strong>do not want</strong> to call a function? Just omit the parenthesis around the attribute call. For example, a successful <a href="http://docs.python-requests.org/en/master/user/quickstart/#make-a-request"><code>get</code></a> request to a webpage done with the <a href="http://docs.python-requests.org/en/master/"><code>requests</code></a> package will have a <a href="http://docs.python-requests.org/en/master/user/quickstart/#response-content"><code>text</code></a> attribute containing the html of the page.</p>
+<pre class="hy"><code>(import requests)
+
+(requests.get &quot;https://www.duckduckgo.com&quot;).text
+=&gt; ERROR - &#39;cannot access attribute on anything other than a name&#39;</code></pre>
+<p>Right… We saw before that the straight dot-notation only works on variable. Let’s try with a variable:</p>
+<pre class="hy"><code>(import requests)
+
+(setv r (requests.get &quot;https://www.duckduckgo.com&quot;))
+r.text
+=&gt; &#39;&lt;!DOCTYPE html&gt;\n&lt;!--[if IEMobi...</code></pre>
+<p>If we don’t want to set a variable and keep a “functional” style (which has many advantages), we can use the <a href="http://docs.hylang.org/en/stable/language/api.html#id1"><code>.</code> function</a>, which is used to perform attribute access on objects.</p>
+<pre class="hy"><code>(import requests)
+
+(. (requests.get &quot;https://www.duckduckgo.com&quot;) text)
+=&gt; &#39;&lt;!DOCTYPE html&gt;\n&lt;!--[if IEMobi...</code></pre>
+</div>
+<div id="chaining-function" class="section level3">
+<h3>Chaining function</h3>
+<p>In python, if you don’t want to save every single steps while you apply transformation to a variable, you have two options.</p>
+<p>If you are dealing with functions, you can nest them.</p>
+<pre><code>var1 = x
+var2 = func1(var1)
+var = func2(var2)
+
+# becomes
+var = func2(func1(x))</code></pre>
+<p>If you are dealing with methods, you can chain them.</p>
+<pre><code>var1 = x
+var2 = var1.method1()
+var = var2.method2()
+
+# becomes
+var = x.method1().method2()
+# also work on multiple line if you use parenthesis
+var = (x.method1()
+        .method2())</code></pre>
+<p>Unlike nesting, chaining has the advantage of letting you read code in the execution order (deeply nested expressions are hard to read). However, chaining only works with methods and each method must return the type of object on which the next method is defined.</p>
+<pre><code># This works!
+(&quot;blabla  &quot;.upper()  #.upper is defined on str and return str
+           .strip()) #.strip is defined on str and return str
+# =&gt; &quot;BLABLA&quot;
+
+# This doesn&#39;t work!
+([1,3,2].sort()      #.sort is defined on list and return None
+        .append(4))  #.append is defined on list, not None
+# =&gt; AttributeError: 
+# =&gt; &#39;NoneType&#39; object has no attribute &#39;append&#39;</code></pre>
+<p>One of the nicest pattern in Lisp is the ability to use <a href="http://docs.hylang.org/en/stable/language/api.html#id2"><code>threading macro (-&gt;)</code></a>.</p>
+<blockquote>
+<p>Threading macro (-&gt;) is used to avoid nesting of expressions. The threading macro inserts each expression into the next expression’s first argument place.</p>
+</blockquote>
+<p>When using threading macro, each expression gets piped into the next expression as its first argument (you don’t even have to write it), leading to code that can be read in its evaluation order.</p>
+<p>This can replace nesting,</p>
+<pre><code>func2(func1(x))
+
+# becomes
+(-&gt; x
+  (func1)
+  (func2))</code></pre>
+<p>chaining,</p>
+<pre class="hy"><code>(x.method1()
+  .method2())
+
+# becomes
+
+(-&gt; x
+  (.method1)
+  (.method2))</code></pre>
+<p>or a mix of both! Note that you don’t write the first argument, so you can start directly with the second one.</p>
+<pre class="hy"><code>func1(x.method1(), &lt;arg2-name&gt;=&lt;val-arg2&gt;)
+
+# becomes
+
+(-&gt; x
+  (.method1)
+  (func1 :arg2-name &lt;val-arg2&gt;))</code></pre>
+</div>
+<div id="lambda-function" class="section level3">
+<h3>Lambda function</h3>
+<p><a href="http://docs.hylang.org/en/stable/language/api.html?highlight=lambda#fn">fn function</a> in hy (equivalent of python’s <code>lambda</code>) are written like below.</p>
+<pre class="python"><code>lambda x: 2017 - x.year_of_birth</code></pre>
+<p>becomes</p>
+<pre class="hy"><code>(fn [x] (- 2017 x.year_of_birth))</code></pre>
+</div>
+</div>
+<div id="pandas-pipeline" class="section level2">
+<h2>Pandas pipeline</h2>
+<p>Pandas is a vast library. The pipeline below just use what I consider to be a subset of common operations on dataframe:</p>
+<ul>
+<li>Creating a dataframe from raw data (we will use an html table with <a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_html.html"><code>pd.read_html</code></a>, but you could start from a csv with <a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_csv.html#pandas.read_csv"><code>pd.read_csv</code></a>)</li>
+<li>Renaming columns (<a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.rename.html"><code>df.rename</code></a>)</li>
+<li>Removing columns (<a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.drop.html"><code>df.drop</code></a>)</li>
+<li>Filtering columns (<a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.filter.html"><code>df.filter</code></a>)</li>
+<li>Creating columns (<a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.assign.html"><code>df.assign</code></a>)</li>
+<li>Filtering rows (<a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.filter.html"><code>df.filter</code></a> and <a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.loc.html"><code>.loc</code></a>)</li>
+<li>Grouping Rows and summarizing columns (<a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.groupby.html"><code>df.groupby</code></a>)</li>
+</ul>
+<p>To try out a nice range of functions, we will do some useless operations, like renaming columns before droping them.</p>
+<p>We will use a table listing the elected candidates of the <a href="https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html">2015 Swiss National Council</a> and try to get the average age of the candidates for the french-speaking “cantons” (political districts).</p>
+<div class="figure">
+<img src="../../../../img/171026-hy-pandas-scrsh.png" alt="Source: https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html" />
+<p class="caption">Source: <a href="https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html" class="uri">https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html</a></p>
+</div>
+<p>This table’s HTML is poorly formatted: although the column headers get a special styling, they are not <code>&lt;th&gt;</code> but just <code>&lt;tr&gt;</code> tags, like the rows.</p>
+<pre class="html"><code>&lt;h2&gt;Les candidats élus&lt;/h2&gt;
+&lt;table class=&quot;nrwtab2&quot;&gt;
+&lt;tr&gt;
+&lt;td width=&quot;200px&quot; bgcolor=&quot;#414141&quot; align=&quot;left&quot;&gt;&lt;font color=&quot;#FFFFFF&quot;&gt;Nom&lt;/font&gt;&lt;/td&gt;
+&lt;td width=&quot;50px&quot; bgcolor=&quot;#414141&quot; align=&quot;center&quot;&gt;&lt;font color=&quot;#FFFFFF&quot;&gt;Né&lt;/font&gt;&lt;/td&gt;
+&lt;td width=&quot;500px&quot; bgcolor=&quot;#414141&quot; align=&quot;left&quot;&gt;&lt;font color=&quot;#FFFFFF&quot;&gt;Liste&lt;/font&gt;&lt;/td&gt;
+&lt;td width=&quot;50px&quot; bgcolor=&quot;#414141&quot; align=&quot;center&quot;&gt;&lt;font color=&quot;#FFFFFF&quot;&gt;Canton&lt;/font&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td width=&quot;200px&quot; bgcolor=&quot;#FFFFFF&quot; align=&quot;left&quot;&gt;Addor Jean-Luc&lt;/td&gt;
+&lt;td width=&quot;50px&quot; bgcolor=&quot;#FFFFFF&quot; align=&quot;center&quot;&gt;1964&lt;/td&gt;
+&lt;td width=&quot;500px&quot; bgcolor=&quot;#FFFFFF&quot; align=&quot;left&quot;&gt;UDC Valais Central&lt;/td&gt;
+&lt;td width=&quot;50px&quot; bgcolor=&quot;#FFFFFF&quot; align=&quot;center&quot;&gt;VS&lt;/td&gt;
+&lt;/tr&gt;
+...</code></pre>
+<p>So, when using <code>read_html</code>, we will need to specify that the headers are stored in the first row (at index 0). In python, the pipeline should look similar to the below :</p>
+<pre class="python"><code>def get_avg_age_of_elected():
+    url = &#39;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&#39;
+    # Scrape the HTML from the URL
+    html = requests.get(url).text
+    # Get a list of html tables converted to dataframe
+    dfs = pd.read_html(html, header=0) 
+    # Get first dataframe in list 
+    df = dfs[0]  
+    # Rename columns to lowercase
+    df = df.rename(columns=str.lower) 
+    # Translate column names to english
+    df = df.rename(columns={&#39;nom&#39;: &#39;name&#39;, 
+                            &#39;né&#39;: &#39;year_of_birth&#39;, 
+                            &#39;liste&#39;: &#39;political_group&#39;})
+    # Drop not-needed columns
+    df = df.drop([&#39;name&#39;, &#39;political_group&#39;], axis=1) 
+    # Calculate an age column based on year_of_birth
+    df = df.assign(age=(lambda x: (2017 - x.year_of_birth)))
+    # Filter columns to keep only &#39;canton&#39; and &#39;age&#39;
+    df = df.filter(items=[&#39;canton&#39;, &#39;age&#39;], axis=1)
+    # Group by cantons
+    df = df.groupby([&#39;canton&#39;])
+    # Calculated the mean in remaining column (&#39;age&#39;)
+    # on the grouped-by-canton df
+    df = df.mean()
+    # Filter rows to keep only french-speaking cantons
+    # (after our groupby, &#39;canton&#39; has become the row index)
+    df = df.filter(regex=&#39;GE|VS|VD|FR|NE|JU&#39;, axis=0))
+    return df</code></pre>
+<p>This is quite long-winded. It would be more elegant to use <a href="https://tomaugspurger.github.io/method-chaining.html">method-chaining</a>.</p>
+<pre class="python"><code>def get_avg_age_of_elected():
+    url = &#39;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&#39;
+    html = requests.get(url).text
+    dfs = pd.read_html(html, header=0) 
+    df = (dfs[0]  
+           .rename(columns=str.lower)
+           .rename(columns={&#39;nom&#39;: &#39;name&#39;, 
+                            &#39;né&#39;: &#39;year_of_birth&#39;, 
+                            &#39;liste&#39;: &#39;political_group&#39;}) 
+           .drop([&#39;name&#39;, &#39;political_group&#39;], axis=1)
+           .assign(age=(lambda x: (2017 - x.year_of_birth)))
+           .filter(items=[&#39;canton&#39;, &#39;age&#39;])
+           .groupby([&#39;canton&#39;])
+           .mean()
+           .filter(regex=&#39;GE|VS|VD|FR|NE|JU&#39;, axis=0))
+    return df
+    
+get_avg_age_of_elected()
+
+# =&gt;            age
+# canton           
+# FR      56.714286
+# GE      51.000000
+# JU      62.500000
+# NE      55.500000
+# VD      51.833333
+# VS      44.750000</code></pre>
+</div>
+<div id="hy-pipeline" class="section level2">
+<h2>Hy pipeline</h2>
+<p>A strict translation to hy could look like:</p>
+<pre class="hy"><code>(import [pandas :as pd])
+(import requests)
+
+(defn get_avg_age_of_elected []
+  (setv url &quot;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&quot;)
+  (setv html (request.get url))
+  (setv dfs (pd.read_html html :header 0))
+  (-&gt; dfs
+    (.        [0])
+    (.rename  :columns str.lower) 
+    (.rename  :columns {&quot;nom&quot; &quot;name&quot; 
+                        &quot;né&quot; &quot;year_of_birth&quot;
+                        &quot;list&quot; &quot;political_group&quot;})
+    (.drop    [&quot;name&quot; &quot;political_group&quot;] :axis 1)
+    (.assign  :age (fn [x] (- 2017 x.year_of_birth)))
+    (.filter  :items [&quot;canton&quot; &quot;age&quot;])
+    (.groupby [&quot;canton&quot;])
+    (.mean)
+    (.filter  :regex &quot;GE|VS|VD|FR|NE|JU&quot; :axis 0))))</code></pre>
+<p>Let’s leverage some of Hy strengths. Firstly we can express the first 3 variables in the threading macro, without needing nesting. There is also a <a href="http://docs.hylang.org/en/stable/language/api.html?highlight=lambda#first"><code>first</code></a> function that return the first element of a collection and can replace <code>(. [0])</code>.</p>
+<pre class="hy"><code>(import [pandas :as pd])
+(import requests)
+
+(defn get_avg_age_of_elected []
+  (-&gt; &quot;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&quot;
+    (requests.get)
+    (. text)
+    (pd.read_html :header 0)
+    (first)
+    (.rename      :columns str.lower) 
+    (.rename      :columns {&quot;nom&quot; &quot;name&quot; 
+                            &quot;né&quot; &quot;year_of_birth&quot;
+                            &quot;list&quot; &quot;political_group&quot;})
+    (.drop        [&quot;name&quot; &quot;political_group&quot;] :axis 1)
+    (.assign      :age (fn [x] (- 2017 x.year_of_birth)))
+    (.filter      :items [&quot;canton&quot; &quot;age&quot;])
+    (.groupby     [&quot;canton&quot;])
+    (.mean)
+    (.filter      :regex &quot;GE|VS|VD|FR|NE|JU&quot; :axis 0))))</code></pre>
+<p>Secondly, <a href="http://docs.hylang.org/en/stable/language/api.html?highlight=lambda#fn"><code>fn</code></a> functions (the <code>lambda</code> equivalent) can be on multiple lines and have docstrings! Since we aren’t saving the function, the docstring isn’t very useful for <code>help</code> but it makes a nice alternative to comments.</p>
+<pre class="hy"><code>(import [pandas :as pd])
+(import requests)
+
+(defn get_avg_age_of_elected []
+  (-&gt; &quot;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&quot;
+    (requests.get)
+    (. text)
+    (pd.read_html :header 0)
+    (first)
+    (.rename      :columns str.lower) 
+    (.rename      :columns {&quot;nom&quot; &quot;name&quot; 
+                            &quot;né&quot; &quot;year_of_birth&quot;
+                            &quot;list&quot; &quot;political_group&quot;})
+    (.drop        [&quot;name&quot; &quot;political_group&quot;] :axis 1)
+    (.assign      :age (fn [x] 
+                        &quot;Calculate rough age&quot;
+                        (- 2017 x.year_of_birth)))
+    (.filter      :items [&quot;canton&quot; &quot;age&quot;])
+    (.groupby     [&quot;canton&quot;])
+    (.mean)
+    (.filter      :regex &quot;GE|VS|VD|FR|NE|JU&quot; :axis 0))))</code></pre>
+<p>Last but not least, there are some patterns in pandas that would break a nice chain of methods. For example, we used <a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.filter.html"><code>.filter</code></a> to filter rows. This only works on indexes so we applied the method after <a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.groupby.html"><code>df.groupby</code></a> (which made column <code>canton</code> the row index). A more common way to filter rows is to use <a href="http://pandas.pydata.org/pandas-docs/stable/indexing.html#selection-by-label"><code>.loc</code></a>. But <a href="http://pandas.pydata.org/pandas-docs/stable/indexing.html#selection-by-label"><code>.loc</code></a> isn’t a method like <a href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.filter.html"><code>.filter</code></a>, it’s an attribute that takes an input. That’s easy to miss, I definitely did and wasn’t the only one: as of today, the only question <a href="https://stackoverflow.com/questions/33656372/using-pandas-loc-in-hy">about hy+pandas in stackoverflow</a> is about this.</p>
+<p>The other tricky part is that <code>.loc</code> takes an indexer as input, and this indexer often refers to the dataframe being filtered. In vanilla python, we would have to break our chain to be able to use the dataframe resulting from the first 3 methods in our indexer.</p>
+<pre class="python"><code># This won&#39;t work
+df = (df.method1()
+        .method2()
+        .method3())
+        .loc[df.colx == y] # The indexer refer to the original df
+        .method4()
+        .method5())
+
+# This would work
+df1 = (df.method1()
+        .method2()
+        .method3())
+
+df2 = df1.loc[df1.colx == y]
+
+df3 = (df2.method4()
+          .method5())</code></pre>
+<p>When we applied <code>(. text)</code> to the response from our <code>requests.get</code> request, we saw that we can access attributes in the threading macro. However, the threading macro only puts the result of the previous function as the first argument, so how can we reuse it in the indexer? Luckily, there is an alternative to <code>(-&gt;)</code>: <a href="http://docs.hylang.org/en/stable/language/api.html#as"><code>(as-&gt;)</code></a>. <code>(as-&gt;)</code> is similar to <code>(-&gt;)</code> but after the first expression you specify a name for the result being passed around (e.g <code>it</code>). It requires a bit more typing because you now have to enter the first argument (<code>it</code>) for each function. But since this argument now has a name (<code>it</code>), you can reuse it multiple times.</p>
+<pre class="hy"><code>(import [pandas :as pd])
+(import requests)
+
+(defn get_avg_age_of_elected []
+  (as-&gt; &quot;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&quot; it
+    (requests.get it)
+    (. it text)
+    (pd.read_html it :header 0)
+    (first it)
+    (.rename it      :columns str.lower) 
+    (.rename it      :columns {&quot;nom&quot; &quot;name&quot; 
+                               &quot;né&quot; &quot;year_of_birth&quot;
+                               &quot;list&quot; &quot;political_group&quot;})
+    (.drop it        [&quot;name&quot; &quot;political_group&quot;] :axis 1)
+    (. it loc [(isin it.canton [&#39;GE&#39;, &#39;VS&#39;, &#39;VD&#39;, &#39;FR&#39;, &#39;NE&#39;, &#39;JU&#39;])])
+    (.assign it      :age (fn [x] 
+                          &quot;Calculate rough age&quot;
+                          (- 2017 x.year_of_birth)))
+    (.filter it      :items [&quot;canton&quot; &quot;age&quot;])
+    (.groupby it    [&quot;canton&quot;])
+    (.mean it))))</code></pre>
+<p>Let’s use <code>hy2py</code> to check the converted python code. Note that if you use docstring in your <code>fn</code>, they will be converted to function (<code>def</code>) rather than <code>lambda</code>.</p>
+<pre class="python"><code># Without docstring in fn
+import pandas as pd
+import requests
+
+def get_avg_age_of_elected():
+    it = &#39;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&#39;
+    it = requests.get(it)
+    it = it.text
+    it = pd.read_html(it, header=0)
+    it = it[0]
+    it = it.rename(columns=str.lower)
+    it = it.rename(columns={&#39;nom&#39;: &#39;name&#39;, &#39;né&#39;: &#39;year_of_birth&#39;, })
+    it = it.drop([&#39;name&#39;, &#39;liste&#39;], axis=1)
+    it = it.assign(age=(lambda x: (2017 - x.year_of_birth)))
+    it = it.filter(items=[&#39;canton&#39;, &#39;age&#39;])
+    it = it.loc[it.canton.isin([&#39;GE&#39;, &#39;VS&#39;, &#39;VD&#39;, &#39;FR&#39;, &#39;NE&#39;, &#39;JU&#39;])]
+    it = it.groupby([&#39;canton&#39;])
+    it = it.mean()
+    return it
+
+# With docstring in fn
+import pandas as pd
+import requests
+
+def get_avg_age_of_elected():
+    it = &#39;https://www.admin.ch/ch/f/pore/nrw15/list/ch_elu.html&#39;
+    it = requests.get(it)
+    it = it.text
+    it = pd.read_html(it, header=0)
+    it = it[0]
+    it = it.rename(columns=str.lower)
+    it = it.rename(columns={&#39;nom&#39;: &#39;name&#39;, &#39;né&#39;: &#39;year_of_birth&#39;, })
+    it = it.drop([&#39;name&#39;, &#39;liste&#39;], axis=1)
+
+    def _hy_anon_fn_1(x):
+        &#39;Calculate rough age&#39;
+        return (2017 - x.year_of_birth)
+    it = it.assign(age=_hy_anon_fn_1)
+    it = it.filter(items=[&#39;canton&#39;, &#39;age&#39;])
+    it = it.loc[it.canton.isin([&#39;GE&#39;, &#39;VS&#39;, &#39;VD&#39;, &#39;FR&#39;, &#39;NE&#39;, &#39;JU&#39;])]
+    it = it.groupby([&#39;canton&#39;])
+    it = it.mean()
+    return it</code></pre>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="../../../../index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="../../../../images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/clojure.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/hy.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/python.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+<script src="../../../../js/math-code.js"></script>
+<script async src="//cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-106752330-1', 'auto');
+ga('send', 'pageview');
+</script>
+
+  </body>
+</html>
+
