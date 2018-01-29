@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tidyeval on Invalid Input</title>
+    <link>/tags/tidyeval/</link>
+    <description>Recent content in Tidyeval on Invalid Input</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 27 Jan 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/tidyeval/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>That time I thought I invented pluck</title>
+      <link>/2018/01/27/that-time-i-thought-i-invented-pluck/</link>
+      <pubDate>Sat, 27 Jan 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/2018/01/27/that-time-i-thought-i-invented-pluck/</guid>
+      <description>Foreword Just before publishing this article, I read the purrr cheatsheet and realised that what I developed here already exists. Its name is pluck and I definetely suggest that you use it.
+ TL;DR This is an attempt to write a R helper function to subset lists that would be as nice as get-in in the functional programming language Clojure. As said above, this is in fact already available in purrr.</description>
+    </item>
+    
+  </channel>
+</rss>

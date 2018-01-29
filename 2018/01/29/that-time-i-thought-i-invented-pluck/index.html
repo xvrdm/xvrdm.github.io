@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.34" />
+
+
+<title>That time I thought I invented pluck - Invalid Input</title>
+<meta property="og:title" content="That time I thought I invented pluck - Invalid Input">
+<meta property="og:type" content="article">
+
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="og:image" content="http://xvrdm.github.io//img/180127-getin-in-R-social.png" >
+  
+  
+
+<meta property="description" content="Leverage purrr and tryCatch to access nested list items.">
+<meta property="og:description" content="Leverage purrr and tryCatch to access nested list items.">
+
+
+<meta name="twitter:creator" content="">
+<meta name="twitter:site" content="">
+
+
+
+
+
+
+
+<link href='//cdn.bootcss.com/highlight.js/9.11.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="../../../../css/fonts.css" media="all">
+<link rel="stylesheet" href="../../../../css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="../../../../" class="nav-logo">
+    <img src="../../../../images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="https://twitter.com/xvrdm">Twitter</a></li>
+    
+    <li><a href="../../../../about/">About</a></li>
+    
+    <li><a href="https://github.com/xvrdm">GitHub</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">6 min read</span>
+    
+
+    <h1 class="article-title">That time I thought I invented pluck</h1>
+
+    
+    <span class="article-date">2018/01/29</span>
+    
+
+    <div class="article-content">
+      <div id="foreword" class="section level2">
+<h2>Foreword</h2>
+<p>Just before publishing this article, I read the <a href="https://github.com/rstudio/cheatsheets/raw/master/purrr.pdf"><code>purrr</code> cheatsheet</a> and realised that what I developed here already exists. Its name is <a href="https://www.rdocumentation.org/packages/purrr/versions/0.2.4/topics/pluck"><code>pluck</code></a> and I definitely suggest that you use it.</p>
+</div>
+<div id="tldr" class="section level2">
+<h2>TL;DR</h2>
+<p>This is an attempt to write a R helper function to subset lists that would be as nice as <code>get-in</code> in the functional programming language Clojure. As said above, this is in fact already available in <code>purrr</code>. Maybe some will still learn something about subsetting, <code>tryCatch</code>, <code>&lt;&lt;-</code> or <code>purrr::reduce</code> here as I did.</p>
+</div>
+<div id="subsetting-in-r" class="section level2">
+<h2>Subsetting in R</h2>
+<p>In R, you have two notations that you can use to access list elements. Both work with nested elements.</p>
+<ul>
+<li>Bracket notation</li>
+</ul>
+<pre class="r"><code>my_list &lt;- list(
+  key_a=2, 
+  key_b=list(
+    key_b1=&quot;hello&quot;
+    )
+  )
+my_list[[&quot;key_b&quot;]][[&quot;key_b1&quot;]]</code></pre>
+<pre><code>## [1] &quot;hello&quot;</code></pre>
+<ul>
+<li>Dollar notation</li>
+</ul>
+<pre class="r"><code>my_list$key_b$key_b1</code></pre>
+<pre><code>## [1] &quot;hello&quot;</code></pre>
+<p>Interestingly, <a href="https://www.coursera.org/learn/r-programming/lecture/e284V/subsetting-partial-matching">both notations support partial key names</a>, as long as the partial names are precise enough to yield a unique match. For this, bracket notation requires that you set the <code>exact</code> argument to <code>FALSE</code>.</p>
+<pre class="r"><code># both would work
+c(
+  my_list[[&quot;key_b&quot;]][[&quot;k&quot;, exact=FALSE]], 
+  my_list$key_b$k
+)</code></pre>
+<pre><code>## [1] &quot;hello&quot; &quot;hello&quot;</code></pre>
+<p>Querying a list for a key that does not exist returns <code>NULL</code>. And querying <code>NULL</code> for a key also returns <code>NULL</code>. So when you search nested keys, you can count on getting <code>NULL</code> if not found. You can go as deep as you want, since the first mismatch will yield <code>NULL</code> and the rest of the keys will be searched on this <code>NULL</code>.</p>
+<pre class="r"><code># The 3 expressions below return NULL
+NULL$hello</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code>my_list$its$me</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code>my_list[[&quot;i&quot;]][[&quot;was&quot;]][[&quot;wondering&quot;]]</code></pre>
+<pre><code>## NULL</code></pre>
+<p>Well, actually, you can only count on getting <code>NULL</code> <strong>if you are searching on a list</strong>. However, when exploring unknown deeply nested structures, it can happen that you end up searching for a key on something else like a string or a number. Rather than <code>NULL</code>, this will return errors, and not the same error whether you used bracket or dollar notation.</p>
+<pre class="r"><code># Returns NULL
+my_list$key_b$wrong_key_on_list</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code># Returns &quot;$ operator error&quot;
+my_list$key_b$key_b1$wrong_key_on_string</code></pre>
+<pre><code>Error in my_list$key_b$key_b1$wrong_key_on_string : 
+  $ operator is invalid for atomic vectors</code></pre>
+<pre class="r"><code># Returns &quot;subscript out of bounds&quot; error
+my_list[[&quot;key_b&quot;]][[&quot;key_b1&quot;]][[&quot;wrong_key_on_string&quot;]]</code></pre>
+<pre><code>Error in my_list[[&quot;key_b&quot;]][[&quot;key_b1&quot;]][[&quot;wrong_key_on_string&quot;]] : 
+  subscript out of bounds</code></pre>
+<p>These errors can be very informative, but I wanted to see if I could get a notation that:</p>
+<ul>
+<li>looked more functional (I find it nicer in pipelines)</li>
+<li>always returned <code>NULL</code> if not found or a default value</li>
+</ul>
+<p>The main inspiration was <a href="https://clojuredocs.org/clojure.core/get-in"><code>get-in</code> from Clojure</a>. <code>get-in</code> takes the object to search as its first argument, followed by a list of the keys, and finally an optional default value.</p>
+</div>
+<div id="a-r-get-in" class="section level2">
+<h2>A R get-in</h2>
+<p>In R, your function can support a flexible number of argument if you use an ellipsis (the three dots <code>...</code>), which you later convert to a list. The first version of <code>get-in</code> used a <code>for</code> loop to search in order the arguments parsed from the ellipsis.</p>
+<pre class="r"><code>getin &lt;- function(l, ...) {
+  keys &lt;- list(...) 
+  val &lt;- l
+  for (key in keys) {
+    val &lt;- val[[key]]
+  }
+  val
+}
+
+getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;)</code></pre>
+<pre><code>## [1] &quot;hello&quot;</code></pre>
+<p>This works fine but we get the same NULL/error behavior as before.</p>
+<pre class="r"><code># Return NULL
+getin(my_list, &quot;key_b&quot;, &quot;wrong_key&quot;)</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code># Returns &quot;subscript out of bounds&quot; error
+getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;wrong_key&quot;)</code></pre>
+<pre><code>Error in val[[key]] : subscript out of bounds</code></pre>
+<p>You can use <a href="http://mazamascience.com/WorkingWithData/?p=912"><code>tryCatch</code></a> to capture errors which would normally stop the script and trigger functions instead.</p>
+<pre class="r"><code>getin &lt;- function(l, ...) {
+  keys &lt;- list(...) 
+  val &lt;- l
+  tryCatch({
+    for (key in keys) {
+      val &lt;- val[[key]]
+    }
+  }, error = function(e) { val &lt;- NULL }) 
+  val
+}
+
+getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;key_b2&quot;)</code></pre>
+<pre><code>## [1] &quot;hello&quot;</code></pre>
+<p>Hmm… I was hoping for <code>NULL</code> here, but it looks like, although the <code>out of bound</code> error was caught and avoided, the assignment of <code>NULL</code> to <code>val</code> in <code>tryCatch</code>’s <code>error</code> function was not successful. We ended up with <code>hello</code> instead, the last valid value of <code>val</code> (coming from <code>val$key_b$keyb1</code>).</p>
+<p>The reason why it does not work as expected is because <code>tryCatch</code>’s <code>error</code> function has its own scope and we are just assigning a new <code>val</code> in it. If this sounds confusing, maybe consider exploring <a href="http://adv-r.had.co.nz/Functions.html#lexical-scoping">these</a> <a href="http://adv-r.had.co.nz/Environments.html">parts</a> of the Advanced R book. Short answer: to target a value in the outer scope in R, you can use <code>&lt;&lt;-</code>.</p>
+<pre class="r"><code>getin &lt;- function(l, ...) {
+  keys &lt;- list(...) 
+  val &lt;- l
+  tryCatch({
+    for (key in keys) {
+      val &lt;- val[[key]]
+    }
+  }, error = function(e) { val &lt;&lt;- NULL }) 
+  val
+}
+
+getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;key_b2&quot;)</code></pre>
+<pre><code>## NULL</code></pre>
+<p>The scope problem could also be avoided altogether by using the <code>tryCatch</code> returned value as the last value of <code>getin</code>. This means returning <code>val</code> at the end of <code>tryCatch</code>’s main function and <code>NULL</code> in the <code>error</code> function.</p>
+<pre class="r"><code>getin &lt;- function(l, ...) {
+  keys &lt;- list(...) 
+  val &lt;- l
+  tryCatch({
+    for (key in keys) {
+      val &lt;- val[[key]]
+    }
+    val
+  }, error = function(e) { NULL })
+}
+
+getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;key_b2&quot;)</code></pre>
+<pre><code>## NULL</code></pre>
+<p>Now, in R, there is a rule: everytime you are using loops on list, it is likely that your code could be better with <a href="http://purrr.tidyverse.org/"><code>purrr</code></a>. In tutorials, <a href="http://purrr.tidyverse.org/"><code>purrr</code></a> is most often used for its <a href="http://purrr.tidyverse.org/reference/map.html"><code>map</code></a> functions which apply transformations to each element of a list, but the package also include <a href="http://purrr.tidyverse.org/reference/reduce.html"><code>reduce</code></a> functions which can return a single result. For example, <a href="https://twitter.com/daranzolin">David Ranzolin</a> elegantly uses <a href="http://purrr.tidyverse.org/reference/reduce.html"><code>reduce</code></a> to <a href="https://daranzolin.github.io/articles/2016-12/join-list-dataframes">join a list of data frames</a>.</p>
+<div class="figure">
+<img src="../../../../img/170130-purrrmap.jpeg" />
+
+</div>
+<p>For <code>getin</code>, we want to use <a href="http://purrr.tidyverse.org/reference/reduce.html"><code>reduce</code></a> to search one key at a time, starting from the provided list, so we need to create a new list that has:</p>
+<ul>
+<li>the list to search on as its first item</li>
+<li>the keys to search as the following items</li>
+</ul>
+<pre class="r"><code>getin &lt;- function(l, ...) {
+  search_list &lt;- c(list(l), list(...))
+  tryCatch({
+    purrr::reduce(search_list, function(x, y) { x[[y]] }) 
+  }, error = function(e) { NULL })
+}
+
+getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;key_b2&quot;)</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code># Or, in more concise form
+
+getin &lt;- function(l, ...) {
+  tryCatch({
+    purrr::reduce(c(list(l), list(...)), ~.x[[.y]]) 
+  }, error = function(e) { NULL })
+}
+getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;key_b2&quot;)</code></pre>
+<pre><code>## NULL</code></pre>
+<p>Lastly, let’s add an optional <code>not_found</code> argument, that lets you provide an alternative value to <code>NULL</code> when the key is not found.</p>
+<pre class="r"><code>getin &lt;- function(l, ..., not_found=NULL) {
+  val &lt;- tryCatch({
+    purrr::reduce(c(list(l), list(...)), ~.x[[.y]]) 
+  }, error = function(e) { NULL })
+  if (is.null(val)) {
+    not_found
+  } else {
+    val 
+  }
+}</code></pre>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>As said in the foreword, I now know that this already exists in <a href="http://purrr.tidyverse.org/"><code>purrr</code></a>. It is called <code>pluck</code> and, although at the time of this writing I could not find it on the website, it’s described <a href="https://github.com/rstudio/cheatsheets/raw/master/purrr.pdf">in RStudio purrr cheatsheet</a> and on <a href="https://www.rdocumentation.org/packages/purrr/versions/0.2.4/topics/pluck">Rdocumentation.org</a>.</p>
+</div>
+<div id="annex" class="section level2">
+<h2>Annex</h2>
+<p>Here is a <code>testthat</code> to test <code>getin</code> in one call.</p>
+<pre class="r"><code>test_getin &lt;- function(getin, my_list) {
+  testthat::test_that(&quot;getin finds valid keys&quot;, {
+    testthat::expect_equal(getin(my_list, &quot;key_a&quot;), my_list$key_a)
+    testthat::expect_equal(getin(my_list, &quot;key_a&quot;, not_found = &quot;a_val&quot;), 
+                           my_list$key_a)
+    testthat::expect_equal(getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;), 
+                           my_list$key_b$key_b1)
+    testthat::expect_equal(getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, not_found = 2),
+                           my_list$key_b$key_b1)
+  })
+  testthat::test_that(&quot;getin return NULL or not_found for absent keys on all types&quot;, {
+    testthat::expect_null(getin(my_list, &quot;key_c&quot;))
+    testthat::expect_null(getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;key_b2&quot;))
+    testthat::expect_equal(getin(my_list, &quot;key_c&quot;, not_found = &quot;bla&quot;), &quot;bla&quot;)
+    testthat::expect_equal(getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;key_b2&quot;, 
+                                 not_found = list(b=2)), list(b=2))
+  })
+}
+
+test_getin(getin, my_list)</code></pre>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="../../../../index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="../../../../images/hugo-logo.png" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js"></script>
+
+
+
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/r.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/yaml.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/clojure.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/hy.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.11.0/languages/python.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+<script src="../../../../js/math-code.js"></script>
+<script async src="//cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-106752330-1', 'auto');
+ga('send', 'pageview');
+</script>
+
+  </body>
+</html>
+
