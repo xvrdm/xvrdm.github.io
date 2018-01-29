@@ -220,7 +220,9 @@ getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;key_b2&quot;)</code>
   }, error = function(e) { NULL })
 }
 
-getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;key_b2&quot;)</code></pre>
+getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;)</code></pre>
+<pre><code>## [1] &quot;hello&quot;</code></pre>
+<pre class="r"><code>getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;key_b2&quot;)</code></pre>
 <pre><code>## NULL</code></pre>
 <pre class="r"><code># Or, in more concise form
 
@@ -229,7 +231,10 @@ getin &lt;- function(l, ...) {
     purrr::reduce(c(list(l), list(...)), ~.x[[.y]]) 
   }, error = function(e) { NULL })
 }
-getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;key_b2&quot;)</code></pre>
+
+getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;)</code></pre>
+<pre><code>## [1] &quot;hello&quot;</code></pre>
+<pre class="r"><code>getin(my_list, &quot;key_b&quot;, &quot;key_b1&quot;, &quot;key_b2&quot;)</code></pre>
 <pre><code>## NULL</code></pre>
 <p>Lastly, let’s add an optional <code>not_found</code> argument, that lets you provide an alternative value to <code>NULL</code> when the key is not found.</p>
 <pre class="r"><code>getin &lt;- function(l, ..., not_found=NULL) {
