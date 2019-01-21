@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Hugo 0.34" />
+<meta name="generator" content="Hugo 0.52" />
 
 
 <title>Scraping javascript generated content with splashr - Invalid Input</title>
@@ -78,7 +78,10 @@
     
 
     <div class="article-content">
-      <div id="introduction" class="section level2">
+      
+
+
+<div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>While scraping rental listings, it’s useful to verify that the scripts managed to grab all the offers. This is nice to have on simple <a href="https://www.moservernet.ch/en/apartments-for-rent/">fully loaded single page</a>, but even nicer if the rental listings are set up as a <a href="http://www.brolliet.ch/en/rent/">infinite scroll page</a>, which seem increasingly popular on real estate websites and require multiple calls from the scraper.</p>
 <div class="figure">
@@ -216,14 +219,17 @@ print(paste(&quot;offer_number value is:&quot;, offer_number))</code></pre>
     
 
     
-<script>
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-ga('create', 'UA-106752330-1', 'auto');
-ga('send', 'pageview');
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-106752330-1', 'auto');
+	
+	ga('send', 'pageview');
+}
 </script>
 
   </body>

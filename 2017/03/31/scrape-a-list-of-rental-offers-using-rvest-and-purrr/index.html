@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Hugo 0.34" />
+<meta name="generator" content="Hugo 0.52" />
 
 
 <title>Scrape a list of rental offers using rvest and purrr - Invalid Input</title>
@@ -68,7 +68,7 @@
 
   <article class="article">
     
-    <span class="article-duration">6 min read</span>
+    <span class="article-duration">7 min read</span>
     
 
     <h1 class="article-title">Scrape a list of rental offers using rvest and purrr</h1>
@@ -78,12 +78,16 @@
     
 
     <div class="article-content">
-      <script src="../../../../rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+      
+<script src="../../../../rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
 <script src="../../../../rmarkdown-libs/jquery/jquery.min.js"></script>
+<link href="../../../../rmarkdown-libs/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
 <script src="../../../../rmarkdown-libs/datatables-binding/datatables.js"></script>
 <link href="../../../../rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
 <link href="../../../../rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
 <script src="../../../../rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
+<link href="../../../../rmarkdown-libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
+<script src="../../../../rmarkdown-libs/crosstalk/js/crosstalk.min.js"></script>
 <link href="../../../../rmarkdown-libs/leaflet/leaflet.css" rel="stylesheet" />
 <script src="../../../../rmarkdown-libs/leaflet/leaflet.js"></script>
 <link href="../../../../rmarkdown-libs/leafletfix/leafletfix.css" rel="stylesheet" />
@@ -118,7 +122,8 @@
 </div>
 <p>We will need to fall back on scraping.</p>
 <p>Looking at the page source, we can see that all the information seem to be present so we won’t need to rely on a headless browser to execute Javascript. The data seems neatly organised.</p>
-<p><img src="../../../../img/1703311-scrsh-source-msrvrn.png" alt="Source code from Apartment Rental section on website" /> On the screenshot above, we can see that all the apartments are in a <code>div</code> with the <code>id=offers</code> (blue rectangle). Then each apartment is contained in its own <code>div</code> with the <code>class=offer</code> (red rectangles). We can also see that the different attributes of each flat are in separated <code>div</code> or <code>h</code> tags, usually with meaningful <code>class</code> like <code>price-offer</code>, <code>charge-offer</code>, <code>size-offer</code>… Very conveniently, and probably because they have a google map applet, the latitude and longitude are already available with the classes <code>info-obj-address-lat</code> and <code>info-obj-address-lng</code>.</p>
+<p><img src="../../../../img/1703311-scrsh-source-msrvrn.png" alt="Source code from Apartment Rental section on website" />
+On the screenshot above, we can see that all the apartments are in a <code>div</code> with the <code>id=offers</code> (blue rectangle). Then each apartment is contained in its own <code>div</code> with the <code>class=offer</code> (red rectangles). We can also see that the different attributes of each flat are in separated <code>div</code> or <code>h</code> tags, usually with meaningful <code>class</code> like <code>price-offer</code>, <code>charge-offer</code>, <code>size-offer</code>… Very conveniently, and probably because they have a google map applet, the latitude and longitude are already available with the classes <code>info-obj-address-lat</code> and <code>info-obj-address-lng</code>.</p>
 </div>
 <div id="getting-the-page-source-into-r" class="section level3">
 <h3>Getting the page source into R</h3>
@@ -145,10 +150,10 @@ head(listing_offers)</code></pre>
 <pre><code>## {xml_nodeset (6)}
 ## [1] &lt;div class=&quot;offer cat1 cat2 2&quot;&gt;\n\t\t\t\t\t&lt;a href=&quot;/en/apartments-f ...
 ## [2] &lt;div class=&quot;offer cat1 cat2 2&quot;&gt;\n\t\t\t\t\t&lt;a href=&quot;/en/apartments-f ...
-## [3] &lt;div class=&quot;offer cat1 cat2 1&quot;&gt;\n\t\t\t\t\t&lt;a href=&quot;/en/apartments-f ...
-## [4] &lt;div class=&quot;offer cat2 2&quot;&gt;\n\t\t\t\t\t&lt;a href=&quot;/en/apartments-for-re ...
-## [5] &lt;div class=&quot;offer cat2 cat3 2&quot;&gt;\n\t\t\t\t\t&lt;a href=&quot;/en/apartments-f ...
-## [6] &lt;div class=&quot;offer cat3 3&quot;&gt;\n\t\t\t\t\t&lt;a href=&quot;/en/apartments-for-re ...</code></pre>
+## [3] &lt;div class=&quot;offer cat1 cat2 2&quot;&gt;\n\t\t\t\t\t&lt;a href=&quot;/en/apartments-f ...
+## [4] &lt;div class=&quot;offer cat1 cat2 1&quot;&gt;\n\t\t\t\t\t&lt;a href=&quot;/en/apartments-f ...
+## [5] &lt;div class=&quot;offer cat2 2&quot;&gt;\n\t\t\t\t\t&lt;a href=&quot;/en/apartments-for-re ...
+## [6] &lt;div class=&quot;offer cat2 3&quot;&gt;\n\t\t\t\t\t&lt;a href=&quot;/en/apartments-for-re ...</code></pre>
 </div>
 <div id="parsing-the-offers" class="section level3">
 <h3>Parsing the offers</h3>
@@ -213,7 +218,7 @@ DT::datatable(
   rownames = FALSE,
   caption = &quot;Table 1 : Offers scraped using the field centric way&quot;)</code></pre>
 <div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","caption":"<caption>Table 1 : Offers scraped using the field centric way<\/caption>","data":[["0570.42.0030","7259.40.0010","2652.41.0010","0630.40.0010","2078.31.0010","2018.44.0040","0675.42.0250","2040.41.0010","0110.43.0020","0575.44.0020","0159.43.0020","0198.46.0020","0158.46.0020","2341.45.0010","0022.40.0010","0082.44.0030","2233.39.9030","0615.45.0010","2027.46.0060","0082.44.0010","0082.43.0010"],[1.5,1.5,1.5,2,2.5,3,3.5,3.5,6,4.5,4,5.5,5.5,4.5,4.5,3,6,6,6,6,9],["Rue de la Faucille 12","Rue du Vidollet 18","Rue de Chêne-Bougeries 40","42, rue de Zürich","Avenue De-Luserna 36","Chemin Taverney 6","Rue du Belvédère 8","Rue Henri-ChristinÃ© 6","Rue de GenÃ¨ve 123 A","Grand-Montfleury 30","Place de l'Octroi 13","Rue de ChÃªne-Bougeries 29","Chemin des Palettes 29","Rue Cavour 9","Avenue Giuseppe-Motta 16","Rue Saint-LÃ©ger 8","Rue Maurice-Braillard 16","Route de ChÃªne 53","Rue Charles-Giron 1","Rue Saint-LÃ©ger 8","Rue Saint-LÃ©ger 8"],[46.2110823,46.2172471,46.1956311,46.2123577,46.2139829,46.2299972,46.2049398,46.1945565,46.1929323,46.2936297,46.1874919,46.1964161,46.1754533,46.2068797,46.2167452,46.1976599,46.220471,46.2001689,46.2061894,46.1976599,46.1976599],[6.1399174,6.1377483,6.191422,6.1452134,6.1246849,6.1177381,6.1315508,6.1424891,6.2037003,6.1646624,6.1405418,6.190808,6.11947,6.1320354,6.1316818,6.1462625,6.1325586,6.1723494,6.1306914,6.1462625,6.1462625],[1150,1200,1300,1390,1400,1600,1990,1990,2200,2230,2350,2450,2700,2780,2950,2950,3900,4500,4900,10900,13900],[90,60,100,80,100,90,140,130,200,165,200,210,170,220,200,175,365,350,350,445,325]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>id<\/th>\n      <th>rooms<\/th>\n      <th>address<\/th>\n      <th>latitude<\/th>\n      <th>longitude<\/th>\n      <th>rent<\/th>\n      <th>charges<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":5,"dom":"tpi","columnDefs":[{"className":"dt-right","targets":[1,3,4,5,6]}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[5,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","caption":"<caption>Table 1 : Offers scraped using the field centric way<\/caption>","data":[["2116.44.0440","0396.46.0100","0042.44.0010","2652.42.0040","0569.42.0230","2012.45.0010","2457.46.0050","2652.43.0040","2322.40.0040","0530.42.0080","0022.44.0020","2153.44.0030","2457.45.0090","0496.43.0010","0525.43.0010","0496.43.0030","0510.46.0020","0183.43.0020","0022.40.0010","0550.42.0020","0158.45.0030","2190.44.0020","2027.46.0060","0285.44.0010","0082.43.0020"],[1.5,1.5,1.5,1.5,2,2,1,1.5,2,3,2,3,3,4,4.5,4,3,6,4.5,4.5,7,4,6,6.5,8],["Rue Etienne-Dumont 5","Boulevard des Philosophes 9","Route de Florissant 55","Rue de Chêne-Bougeries 40","Rue du Fort-Barreau 13","Chemin Taverney 13","Rue du Vidollet 11","Rue de ChÃªne-Bougeries 40","Chemin du PrÃ©-Cartelier 4","Rue Blanche 3","Avenue Giuseppe-Motta 16","Rue de Fribourg 10","Rue du Vidollet 11","Rue de Saint-Jean 7","Route de ChÃªne 12","Rue de Saint-Jean 7","Rue Chandieu 1","Chemin Petit-Montfleury 4","Avenue Giuseppe-Motta 16","Avenue Gaspard-Vallette 12","Chemin des Palettes 29","Grand-Rue 10","Rue Charles-Giron 1","Boulevard des TranchÃ©es 46","Rue Saint-LÃ©ger 8"],[46.1994964,46.1974724,46.1939272,46.1956311,46.2113528,46.2299926,46.2159927,46.1956311,46.2183365,46.1891547,46.2167573,46.2108677,46.2159927,46.2045372,46.199849,46.2045372,46.2158774,46.2908293,46.2167452,46.1947282,46.1754533,46.20209,46.2061894,null,46.1976599],[6.1495098,6.1444096,6.1613533,6.191422,6.1407533,6.1196569,6.1381931,6.191422,6.1326113,6.1436276,6.1316793,6.145521,6.1381931,6.125548,6.1631985,6.125548,6.1344373,6.1627209,6.1316818,6.1558284,6.11947,6.1451254,6.1306914,null,6.1462625],[1000,1050,1100,1100,1250,1250,1300,1300,1350,1400,1650,1690,1890,2100,2200,2400,2600,2850,2950,3015,3200,3800,4900,6800,12400],[80,80,110,100,120,75,70,100,120,null,140,150,100,150,230,190,135,254,200,180,240,374,280,275,300]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>id<\/th>\n      <th>rooms<\/th>\n      <th>address<\/th>\n      <th>latitude<\/th>\n      <th>longitude<\/th>\n      <th>rent<\/th>\n      <th>charges<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":5,"dom":"tpi","columnDefs":[{"className":"dt-right","targets":[1,3,4,5,6]}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[5,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="parsing-with-the-offer-centric-way" class="section level4">
 <h4>Parsing with the “offer centric” way</h4>
@@ -278,7 +283,7 @@ DT::datatable(
   rownames = FALSE,
   caption = &quot;Table 2 : Offers scraped using the offer centric way&quot;)</code></pre>
 <div id="htmlwidget-2" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-2">{"x":{"filter":"none","caption":"<caption>Table 2 : Offers scraped using the offer centric way<\/caption>","data":[["0570.42.0030","7259.40.0010","2652.41.0010","0630.40.0010","2078.31.0010","2018.44.0040","0675.42.0250","2040.41.0010","0110.43.0020","0575.44.0020","0159.43.0020","0198.46.0020","0158.46.0020","2341.45.0010","0022.40.0010","0082.44.0030","2233.39.9030","0615.45.0010","2027.46.0060","0082.44.0010","0082.43.0010"],["Rue de la Faucille 12","Rue du Vidollet 18","Rue de Chêne-Bougeries 40","42, rue de Zürich","Avenue De-Luserna 36","Chemin Taverney 6","Rue du Belvédère 8","Rue Henri-ChristinÃ© 6","Rue de GenÃ¨ve 123 A","Grand-Montfleury 30","Place de l'Octroi 13","Rue de ChÃªne-Bougeries 29","Chemin des Palettes 29","Rue Cavour 9","Avenue Giuseppe-Motta 16","Rue Saint-LÃ©ger 8","Rue Maurice-Braillard 16","Route de ChÃªne 53","Rue Charles-Giron 1","Rue Saint-LÃ©ger 8","Rue Saint-LÃ©ger 8"],[1.5,1.5,1.5,2,2.5,3,3.5,3.5,6,4.5,4,5.5,5.5,4.5,4.5,3,6,6,6,6,9],[46.2110823,46.2172471,46.1956311,46.2123577,46.2139829,46.2299972,46.2049398,46.1945565,46.1929323,46.2936297,46.1874919,46.1964161,46.1754533,46.2068797,46.2167452,46.1976599,46.220471,46.2001689,46.2061894,46.1976599,46.1976599],[6.1399174,6.1377483,6.191422,6.1452134,6.1246849,6.1177381,6.1315508,6.1424891,6.2037003,6.1646624,6.1405418,6.190808,6.11947,6.1320354,6.1316818,6.1462625,6.1325586,6.1723494,6.1306914,6.1462625,6.1462625],[1150,1200,1300,1390,1400,1600,1990,1990,2200,2230,2350,2450,2700,2780,2950,2950,3900,4500,4900,10900,13900],[90,60,100,80,100,90,140,130,200,165,200,210,170,220,200,175,365,350,350,445,325]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>id<\/th>\n      <th>address<\/th>\n      <th>room<\/th>\n      <th>latitude<\/th>\n      <th>longitude<\/th>\n      <th>rent<\/th>\n      <th>charges<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":5,"dom":"tpi","columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6]}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[5,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"filter":"none","caption":"<caption>Table 2 : Offers scraped using the offer centric way<\/caption>","data":[["2116.44.0440","0396.46.0100","0042.44.0010","2652.42.0040","0569.42.0230","2012.45.0010","2457.46.0050","2652.43.0040","2322.40.0040","0022.44.0020","2153.44.0030","2457.45.0090","0496.43.0010","0525.43.0010","0496.43.0030","0510.46.0020","0183.43.0020","0022.40.0010","0550.42.0020","0158.45.0030","2190.44.0020","2027.46.0060","0082.43.0020"],["Rue Etienne-Dumont 5","Boulevard des Philosophes 9","Route de Florissant 55","Rue de Chêne-Bougeries 40","Rue du Fort-Barreau 13","Chemin Taverney 13","Rue du Vidollet 11","Rue de ChÃªne-Bougeries 40","Chemin du PrÃ©-Cartelier 4","Avenue Giuseppe-Motta 16","Rue de Fribourg 10","Rue du Vidollet 11","Rue de Saint-Jean 7","Route de ChÃªne 12","Rue de Saint-Jean 7","Rue Chandieu 1","Chemin Petit-Montfleury 4","Avenue Giuseppe-Motta 16","Avenue Gaspard-Vallette 12","Chemin des Palettes 29","Grand-Rue 10","Rue Charles-Giron 1","Rue Saint-LÃ©ger 8"],[1.5,1.5,1.5,1.5,2,2,1,1.5,2,2,3,3,4,4.5,4,3,6,4.5,4.5,7,4,6,8],[46.1994964,46.1974724,46.1939272,46.1956311,46.2113528,46.2299926,46.2159927,46.1956311,46.2183365,46.2167573,46.2108677,46.2159927,46.2045372,46.199849,46.2045372,46.2158774,46.2908293,46.2167452,46.1947282,46.1754533,46.20209,46.2061894,46.1976599],[6.1495098,6.1444096,6.1613533,6.191422,6.1407533,6.1196569,6.1381931,6.191422,6.1326113,6.1316793,6.145521,6.1381931,6.125548,6.1631985,6.125548,6.1344373,6.1627209,6.1316818,6.1558284,6.11947,6.1451254,6.1306914,6.1462625],[1000,1050,1100,1100,1250,1250,1300,1300,1350,1650,1690,1890,2100,2200,2400,2600,2850,2950,3015,3200,3800,4900,12400],[80,80,110,100,120,75,70,100,120,140,150,100,150,230,190,135,254,200,180,240,374,280,300]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>id<\/th>\n      <th>address<\/th>\n      <th>room<\/th>\n      <th>latitude<\/th>\n      <th>longitude<\/th>\n      <th>rent<\/th>\n      <th>charges<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":5,"dom":"tpi","columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6]}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[5,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </div>
@@ -290,15 +295,22 @@ DT::datatable(
 <pre class="r"><code>suppressMessages(library(ggplot2))
 suppressMessages(library(hrbrthemes))
 
-offers %&gt;% ggplot(aes(x=rent, y=charges)) + 
+offers_no_outliers &lt;- filter(offers, rent &lt; 10000) 
+
+offers_no_outliers %&gt;%
+  ggplot(aes(x=rent, y=charges)) + 
   geom_jitter(alpha=0.5) +
   geom_smooth(method = &quot;lm&quot;, size=0.5, se = F, color=&quot;black&quot;) + 
-  annotate(geom=&quot;label&quot;, x=max(offers$rent), y=min(offers$charges),
-           label=paste(&quot;r(rent, charge) =&quot;, round(cor(offers$rent, offers$charges), 3)), 
+  annotate(geom=&quot;label&quot;, 
+           x=max(offers$rent), y=min(offers$charges),
+           label=paste(
+             &quot;r(rent, charge) =&quot;, 
+             round(cor(offers_no_outliers$rent, 
+                       offers_no_outliers$charges), 3)), 
            hjust=1, fill=&quot;black&quot;, alpha=&quot;0.5&quot;, color=&quot;white&quot;) +
   labs(title=stringr::str_to_title(&quot;Do charges go up with rent?&quot;),
        subtitle=&quot;There seems to be a positive linear relationship between rent and charges.&quot;) +
-  theme_ipsum_rc()</code></pre>
+  theme_ipsum_tw()</code></pre>
 <p><img src="../../../../post/1703311-scrape-a-list-of-rental-offers-using-rvest-and-purrr_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 </div>
 <div id="seeing-the-results-on-a-map" class="section level3">
@@ -313,7 +325,7 @@ m &lt;- leaflet(offers) %&gt;%
              popup=offers$address)
 m</code></pre>
 <div id="htmlwidget-3" style="width:672px;height:480px;" class="leaflet html-widget"></div>
-<script type="application/json" data-for="htmlwidget-3">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["CartoDB.Positron",null,null,{"errorTileUrl":"","noWrap":false,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addMarkers","args":[[46.2110823,46.2172471,46.1956311,46.2123577,46.2139829,46.2299972,46.2049398,46.1945565,46.1929323,46.2936297,46.1874919,46.1964161,46.1754533,46.2068797,46.2167452,46.1976599,46.220471,46.2001689,46.2061894,46.1976599,46.1976599],[6.1399174,6.1377483,6.191422,6.1452134,6.1246849,6.1177381,6.1315508,6.1424891,6.2037003,6.1646624,6.1405418,6.190808,6.11947,6.1320354,6.1316818,6.1462625,6.1325586,6.1723494,6.1306914,6.1462625,6.1462625],null,null,null,{"clickable":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},["Rue de la Faucille 12","Rue du Vidollet 18","Rue de Chêne-Bougeries 40","42, rue de Zürich","Avenue De-Luserna 36","Chemin Taverney 6","Rue du Belvédère 8","Rue Henri-ChristinÃ© 6","Rue de GenÃ¨ve 123 A","Grand-Montfleury 30","Place de l'Octroi 13","Rue de ChÃªne-Bougeries 29","Chemin des Palettes 29","Rue Cavour 9","Avenue Giuseppe-Motta 16","Rue Saint-LÃ©ger 8","Rue Maurice-Braillard 16","Route de ChÃªne 53","Rue Charles-Giron 1","Rue Saint-LÃ©ger 8","Rue Saint-LÃ©ger 8"],null,null,null,null,null,null]}],"limits":{"lat":[46.1754533,46.2936297],"lng":[6.1177381,6.2037003]}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-3">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["CartoDB.Positron",null,null,{"errorTileUrl":"","noWrap":false,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addMarkers","args":[[46.1994964,46.1974724,46.1939272,46.1956311,46.2113528,46.2299926,46.2159927,46.1956311,46.2183365,46.2167573,46.2108677,46.2159927,46.2045372,46.199849,46.2045372,46.2158774,46.2908293,46.2167452,46.1947282,46.1754533,46.20209,46.2061894,46.1976599],[6.1495098,6.1444096,6.1613533,6.191422,6.1407533,6.1196569,6.1381931,6.191422,6.1326113,6.1316793,6.145521,6.1381931,6.125548,6.1631985,6.125548,6.1344373,6.1627209,6.1316818,6.1558284,6.11947,6.1451254,6.1306914,6.1462625],null,null,null,{"clickable":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},["Rue Etienne-Dumont 5","Boulevard des Philosophes 9","Route de Florissant 55","Rue de Chêne-Bougeries 40","Rue du Fort-Barreau 13","Chemin Taverney 13","Rue du Vidollet 11","Rue de ChÃªne-Bougeries 40","Chemin du PrÃ©-Cartelier 4","Avenue Giuseppe-Motta 16","Rue de Fribourg 10","Rue du Vidollet 11","Rue de Saint-Jean 7","Route de ChÃªne 12","Rue de Saint-Jean 7","Rue Chandieu 1","Chemin Petit-Montfleury 4","Avenue Giuseppe-Motta 16","Avenue Gaspard-Vallette 12","Chemin des Palettes 29","Grand-Rue 10","Rue Charles-Giron 1","Rue Saint-LÃ©ger 8"],null,null,null,null,null,null]}],"limits":{"lat":[46.1754533,46.2908293],"lng":[6.11947,6.191422]}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <div id="ressources" class="section level2">
@@ -367,14 +379,17 @@ m</code></pre>
 
 
     
-<script>
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-ga('create', 'UA-106752330-1', 'auto');
-ga('send', 'pageview');
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-106752330-1', 'auto');
+	
+	ga('send', 'pageview');
+}
 </script>
 
   </body>

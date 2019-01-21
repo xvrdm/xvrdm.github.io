@@ -17,9 +17,8 @@
       <pubDate>Mon, 03 Jul 2017 00:00:00 +0000</pubDate>
       
       <guid>/2017/07/03/testing-flask-sqlalchemy-database-with-pytest/</guid>
-      <description>Introduction Early in the tutorial, the author explains how to set up your app to use unittest and the Flask-Testing extension for its test framework. Since I wanted to use pytest, this was a good opportunity to explore the test setup a bit more in depth.
- Running pytest from a script Firstly, add pytest to your requirements.txt and place a dummy test in the project/tests.
-def test_dummy(): assert True Secondly, add a manager.</description>
+      <description>Introduction I have been studying the amazing TestDriven.io tutorial to learn full stack development with Python and React. Early in the tutorial, the author explains how to set up your app to use unittest and the Flask-Testing extension for its test framework. Since I wanted to use pytest, this was a good opportunity to explore the test setup a bit more in depth.
+ Running pytest from a script Firstly, add pytest to your requirements.</description>
     </item>
     
   </channel>

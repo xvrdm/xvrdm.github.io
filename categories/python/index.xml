@@ -28,17 +28,16 @@
       <pubDate>Mon, 03 Jul 2017 00:00:00 +0000</pubDate>
       
       <guid>/2017/07/03/testing-flask-sqlalchemy-database-with-pytest/</guid>
-      <description>Introduction Early in the tutorial, the author explains how to set up your app to use unittest and the Flask-Testing extension for its test framework. Since I wanted to use pytest, this was a good opportunity to explore the test setup a bit more in depth.
- Running pytest from a script Firstly, add pytest to your requirements.txt and place a dummy test in the project/tests.
-def test_dummy(): assert True Secondly, add a manager.</description>
+      <description>Introduction I have been studying the amazing TestDriven.io tutorial to learn full stack development with Python and React. Early in the tutorial, the author explains how to set up your app to use unittest and the Flask-Testing extension for its test framework. Since I wanted to use pytest, this was a good opportunity to explore the test setup a bit more in depth.
+ Running pytest from a script Firstly, add pytest to your requirements.</description>
     </item>
     
     <item>
       <title>Clojure for pythonista - Manipulating strings</title>
-      <link>/2017/06/13/clojure-for-pythonista---manipulating-strings/</link>
+      <link>/2017/06/13/clojure-for-pythonista-manipulating-strings/</link>
       <pubDate>Tue, 13 Jun 2017 00:00:00 +0000</pubDate>
       
-      <guid>/2017/06/13/clojure-for-pythonista---manipulating-strings/</guid>
+      <guid>/2017/06/13/clojure-for-pythonista-manipulating-strings/</guid>
       <description>Foreword I am trying to learn clojure. This series of posts is my attempt to solve beginner exercises both in python and clojure. Exercises are inspired by the excellent Reuven Lerner’s Practice Makes Python and other sources like Learn python the hard way. Before trying any exercises, you can read an excellent introduction to clojure : Brave Clojure.
  Introduction This exercise introduces ways to deal with strings.
  Goal Create a command line script that asks the user to enter a word, sort the letters in alphabetic order and output the sentence “Your letters are: ”.</description>
@@ -46,10 +45,10 @@ def test_dummy(): assert True Secondly, add a manager.</description>
     
     <item>
       <title>Clojure for pythonista - User Input/Loop/Conditional</title>
-      <link>/2017/06/08/clojure-for-pythonista---user-input/loop/conditional/</link>
+      <link>/2017/06/08/clojure-for-pythonista-user-input-loop-conditional/</link>
       <pubDate>Thu, 08 Jun 2017 00:00:00 +0000</pubDate>
       
-      <guid>/2017/06/08/clojure-for-pythonista---user-input/loop/conditional/</guid>
+      <guid>/2017/06/08/clojure-for-pythonista-user-input-loop-conditional/</guid>
       <description>Foreword I am trying to learn clojure. This series of posts is my attempt to solve beginner exercises both in python and clojure. Exercises are inspired by the excellent Reuven Lerner’s Practice Makes Python and other sources like Learn python the hard way. Before trying any exercises, you can read an excellent introduction to clojure : Brave Clojure.
  Introduction This exercise introduces the following concepts: user-input, conditional and loop.</description>
     </item>
